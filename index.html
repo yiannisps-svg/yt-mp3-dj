@@ -177,7 +177,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .btn-play {
@@ -227,21 +227,32 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.6);
     }
 
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      background: var(--bg-input);
-      border-radius: 3px;
-      overflow: hidden;
+    /* Interactive Seek Slider */
+    .seek-slider {
+      height: 30px !important;
+      margin-top: 2px;
     }
 
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      transition: width 0.25s linear;
+    .seek-slider::-webkit-slider-runnable-track {
+      height: 8px !important;
+      border-radius: 4px !important;
     }
-    .deck-a .progress-fill { background: var(--accent-a); }
-    .deck-b .progress-fill { background: var(--accent-b); }
+
+    .seek-slider::-webkit-slider-thumb {
+      height: 22px !important;
+      width: 22px !important;
+      margin-top: -8px !important;
+    }
+
+    .deck-a .seek-slider::-webkit-slider-thumb {
+      background: var(--accent-a) !important;
+      border: 2px solid #ffffff;
+    }
+
+    .deck-b .seek-slider::-webkit-slider-thumb {
+      background: var(--accent-b) !important;
+      border: 2px solid #ffffff;
+    }
 
     /* Mixer / Crossfader */
     .mixer {
@@ -579,7 +590,8 @@
         <span class="vol-label" id="vol-val-a">100%</span>
       </div>
     </div>
-    <div class="progress-bar"><div class="progress-fill" id="prog-a"></div></div>
+    <input type="range" class="seek-slider" id="seek-a" min="0" max="1000" value="0"
+      oninput="onSeekInput('A', this.value)" onchange="onSeekCommit('A', this.value)" />
   </div>
 
   <!-- DECK B -->
@@ -599,7 +611,8 @@
         <span class="vol-label" id="vol-val-b">100%</span>
       </div>
     </div>
-    <div class="progress-bar"><div class="progress-fill" id="prog-b"></div></div>
+    <input type="range" class="seek-slider" id="seek-b" min="0" max="1000" value="0"
+      oninput="onSeekInput('B', this.value)" onchange="onSeekCommit('B', this.value)" />
   </div>
 
   <!-- MIXER & CROSSFADER -->
@@ -669,7 +682,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v1.4.0 • Mobile Core';
+    const APP_VERSION = 'v1.5.0 • Seek Bar';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
@@ -705,6 +718,8 @@
         audioEl: new Audio(),
         volume: 100,
         playing: false,
+        isSeeking: false,
+        duration: 0,
         track: null
       },
       B: {
@@ -715,6 +730,8 @@
         audioEl: new Audio(),
         volume: 100,
         playing: false,
+        isSeeking: false,
+        duration: 0,
         track: null
       }
     };
@@ -758,6 +775,29 @@
           wakeLock.addEventListener('release', () => { wakeLock = null; });
         } catch (e) {}
       }
+    }
+
+    // --- SEEK BAR LOGIC ---
+    function onSeekInput(id, val) {
+      const d = decks[id];
+      d.isSeeking = true;
+      if (d.duration > 0) {
+        const previewSec = (Number(val) / 1000) * d.duration;
+        document.getElementById(`time-${id.toLowerCase()}`).textContent = `${formatTime(previewSec)} / ${formatTime(d.duration)}`;
+      }
+    }
+
+    function onSeekCommit(id, val) {
+      const d = decks[id];
+      if (d.duration > 0) {
+        const targetSec = (Number(val) / 1000) * d.duration;
+        if (d.source === 'youtube' && d.ytReady && d.ytPlayer.seekTo) {
+          d.ytPlayer.seekTo(targetSec, true);
+        } else if (d.source === 'mp3') {
+          d.audioEl.currentTime = targetSec;
+        }
+      }
+      setTimeout(() => { d.isSeeking = false; }, 250);
     }
 
     // --- YOUTUBE API & VALIDATOR SETUP ---
@@ -898,6 +938,8 @@
       stopDeck(id);
       d.track = track;
       d.source = track.source;
+      d.duration = 0;
+      document.getElementById(`seek-${id.toLowerCase()}`).value = 0;
 
       document.getElementById(`title-${id.toLowerCase()}`).textContent = track.title;
       document.getElementById(`alt-${id.toLowerCase()}`).style.display = (track.embedStatus === 'blocked') ? 'inline-flex' : 'none';
@@ -933,6 +975,7 @@
       d.audioEl.pause();
       d.audioEl.currentTime = 0;
       d.playing = false;
+      document.getElementById(`seek-${id.toLowerCase()}`).value = 0;
     }
 
     function togglePlay(id) {
@@ -1076,16 +1119,20 @@
           dur = d.audioEl.duration || 0;
         }
 
-        document.getElementById(`time-${id.toLowerCase()}`).textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
-        const pct = dur > 0 ? Math.min(100, (cur / dur) * 100) : 0;
-        document.getElementById(`prog-${id.toLowerCase()}`).style.width = `${pct}%`;
+        d.duration = dur;
+
+        if (!d.isSeeking) {
+          document.getElementById(`time-${id.toLowerCase()}`).textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+          const sliderVal = dur > 0 ? Math.min(1000, Math.round((cur / dur) * 1000)) : 0;
+          document.getElementById(`seek-${id.toLowerCase()}`).value = sliderVal;
+        }
 
         if (autoDJ && d.playing && !isTransitioning && dur > 15 && (dur - cur) <= 8) {
           const isCurrentActive = (id === 'A' && crossfadeValue < 50) || (id === 'B' && crossfadeValue >= 50);
           if (isCurrentActive) triggerAutoTransition();
         }
       });
-    }, 500);
+    }, 350);
 
     // --- QUEUE & INPUTS ---
     function extractYouTubeID(url) {
