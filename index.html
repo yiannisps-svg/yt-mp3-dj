@@ -35,7 +35,7 @@
       padding: 12px;
       max-width: 540px;
       margin: 0 auto;
-      padding-bottom: 50px;
+      padding-bottom: 30px;
     }
 
     header {
@@ -489,6 +489,33 @@
 
     .btn-del { color: var(--danger); }
 
+    /* Footer Versioning */
+    footer {
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78em;
+      color: var(--text-muted);
+    }
+
+    .version-badge {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      color: #d4d4d8;
+    }
+
+    .btn-reload {
+      padding: 4px 10px;
+      font-size: 0.9em;
+      min-height: 32px;
+    }
+
     .status-toast {
       position: fixed;
       bottom: 12px;
@@ -630,11 +657,27 @@
   </div>
   <ul class="queue-list" id="queue-list"></ul>
 
+  <!-- FOOTER VERSIONING -->
+  <footer>
+    <span class="version-badge" id="app-version"></span>
+    <button class="btn-reload" onclick="hardReload()" title="Φόρτωση νεότερης έκδοσης">🔄 Έλεγχος Update</button>
+  </footer>
+
   <div class="status-toast" id="toast"></div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
+    // --- APP VERSION ---
+    const APP_VERSION = 'v1.4.0 • Mobile Core';
+    document.getElementById('app-version').textContent = APP_VERSION;
+
+    function hardReload() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', Date.now());
+      window.location.href = url.toString();
+    }
+
     // --- STATE ---
     let fontScale = parseFloat(localStorage.getItem('dj_font_scale')) || 1;
     document.documentElement.style.setProperty('--font-scale', fontScale);
@@ -1103,7 +1146,6 @@
     }
 
     function loadNextUnplayedToDeck(id, autoPlay) {
-      // Προτιμάει άπαιχτα ΚΑΙ ξεκλείδωτα κομμάτια
       const nextIdx = queue.findIndex(item => !item.played && item.embedStatus !== 'blocked');
       if (nextIdx === -1) return false;
       queue[nextIdx].played = true;
