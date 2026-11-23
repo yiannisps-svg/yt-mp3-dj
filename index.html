@@ -292,6 +292,52 @@
       border-color: var(--accent-auto);
     }
 
+    /* Auto-DJ Timing Settings */
+    .autodj-settings {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .setting-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78em;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .setting-val {
+      color: var(--accent-auto);
+      font-weight: 900;
+    }
+
+    .mini-slider {
+      height: 26px !important;
+    }
+
+    .mini-slider::-webkit-slider-runnable-track {
+      height: 6px !important;
+    }
+
+    .mini-slider::-webkit-slider-thumb {
+      height: 20px !important;
+      width: 20px !important;
+      margin-top: -8px !important;
+      background: var(--accent-auto) !important;
+    }
+
     /* Playlist Manager Box */
     .playlist-panel {
       background: var(--bg-card);
@@ -627,6 +673,24 @@
       <button class="btn-autodj" id="btn-autodj" onclick="toggleAutoDJ()">🤖 Auto-DJ: OFF</button>
       <button onclick="triggerAutoTransition()">⏭️ Mix Επόμενο</button>
     </div>
+
+    <!-- Auto-DJ Timing Settings -->
+    <div class="autodj-settings">
+      <div class="setting-box">
+        <div class="setting-header">
+          <span>Διάρκεια Mix</span>
+          <span class="setting-val" id="fade-dur-val">6s</span>
+        </div>
+        <input type="range" class="mini-slider" id="fade-dur-slider" min="2" max="15" value="6" oninput="updateAutoDJSettings()" />
+      </div>
+      <div class="setting-box">
+        <div class="setting-header">
+          <span>Πριν το τέλος</span>
+          <span class="setting-val" id="lead-time-val">8s</span>
+        </div>
+        <input type="range" class="mini-slider" id="lead-time-slider" min="2" max="20" value="8" oninput="updateAutoDJSettings()" />
+      </div>
+    </div>
   </div>
 
   <!-- ADD TRACKS -->
@@ -682,7 +746,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v1.5.0 • Seek Bar';
+    const APP_VERSION = 'v1.6.0 • Auto-DJ Timing';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
@@ -698,6 +762,23 @@
     let queue = JSON.parse(localStorage.getItem('dj_active_queue')) || [];
     let savedPlaylists = JSON.parse(localStorage.getItem('dj_saved_playlists')) || {};
     let activePlaylistName = localStorage.getItem('dj_active_pl_name') || '';
+
+    // Auto-DJ Timing Settings (saved in localStorage)
+    let autoFadeSec = parseInt(localStorage.getItem('dj_fade_sec')) || 6;
+    let autoLeadSec = parseInt(localStorage.getItem('dj_lead_sec')) || 8;
+    document.getElementById('fade-dur-slider').value = autoFadeSec;
+    document.getElementById('fade-dur-val').textContent = `${autoFadeSec}s`;
+    document.getElementById('lead-time-slider').value = autoLeadSec;
+    document.getElementById('lead-time-val').textContent = `${autoLeadSec}s`;
+
+    function updateAutoDJSettings() {
+      autoFadeSec = parseInt(document.getElementById('fade-dur-slider').value);
+      autoLeadSec = parseInt(document.getElementById('lead-time-slider').value);
+      document.getElementById('fade-dur-val').textContent = `${autoFadeSec}s`;
+      document.getElementById('lead-time-val').textContent = `${autoLeadSec}s`;
+      localStorage.setItem('dj_fade_sec', autoFadeSec);
+      localStorage.setItem('dj_lead_sec', autoLeadSec);
+    }
 
     let autoDJ = false;
     let isTransitioning = false;
@@ -1042,7 +1123,7 @@
       btn.classList.toggle('active', autoDJ);
 
       if (autoDJ) {
-        showToast('Auto-DJ ενεργοποιήθηκε');
+        showToast(`Auto-DJ ON (Mix ${autoFadeSec}s, ${autoLeadSec}s πριν το τέλος)`);
         if (!decks.A.playing && !decks.B.playing) {
           if (!decks.A.track && queue.length > 0) loadNextUnplayedToDeck('A', true);
           else if (decks.A.track) togglePlay('A');
@@ -1079,8 +1160,8 @@
 
       const targetXF = toId === 'B' ? 100 : 0;
       const startXF = crossfadeValue;
-      const durationMs = 6000;
-      const steps = 60;
+      const durationMs = autoFadeSec * 1000;
+      const steps = Math.max(20, autoFadeSec * 10);
       let step = 0;
 
       const interval = setInterval(() => {
@@ -1127,7 +1208,7 @@
           document.getElementById(`seek-${id.toLowerCase()}`).value = sliderVal;
         }
 
-        if (autoDJ && d.playing && !isTransitioning && dur > 15 && (dur - cur) <= 8) {
+        if (autoDJ && d.playing && !isTransitioning && dur > (autoLeadSec + 4) && (dur - cur) <= autoLeadSec) {
           const isCurrentActive = (id === 'A' && crossfadeValue < 50) || (id === 'B' && crossfadeValue >= 50);
           if (isCurrentActive) triggerAutoTransition();
         }
