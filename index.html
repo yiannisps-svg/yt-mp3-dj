@@ -36,7 +36,7 @@
       padding: 12px;
       max-width: 540px;
       margin: 0 auto;
-      padding-bottom: 50px;
+      padding-bottom: 40px;
     }
 
     header {
@@ -120,7 +120,6 @@
       text-align: center;
       padding: 8px;
       z-index: 5;
-      white-space: pre-line;
     }
 
     .overlay-badge.bridge-mode {
@@ -289,59 +288,6 @@
       border-color: var(--accent-auto);
     }
 
-    /* Playlist Manager Box */
-    .playlist-panel {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-
-    .playlist-title-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      font-size: 0.85em;
-      font-weight: 800;
-      color: var(--text-muted);
-    }
-
-    .active-pl-badge {
-      color: var(--accent-auto);
-      font-weight: 800;
-    }
-
-    .playlist-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    select {
-      flex: 1;
-      background: var(--bg-input);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 0.95em;
-      min-height: 44px;
-    }
-
-    .playlist-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 8px;
-    }
-
-    .btn-save-active {
-      background: #064e3b;
-      border-color: var(--accent-auto);
-      color: #a7f3d0;
-    }
-
     /* Input & Queue */
     .add-box {
       background: var(--bg-card);
@@ -374,25 +320,13 @@
       gap: 8px;
     }
 
-    /* Queue List */
+    /* Queue & Playlists */
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 14px 0 8px 0;
       font-weight: 800;
-      gap: 8px;
-    }
-
-    .header-mini-btns {
-      display: flex;
-      gap: 6px;
-    }
-
-    .header-mini-btns button {
-      padding: 6px 10px;
-      font-size: 0.8em;
-      min-height: 36px;
     }
 
     .queue-list {
@@ -416,11 +350,6 @@
     .queue-item.bridge-item {
       border-color: var(--accent-bridge);
       background: #1a1025;
-    }
-
-    .queue-item.played-item {
-      opacity: 0.55;
-      border-style: dashed;
     }
 
     .q-info {
@@ -460,12 +389,6 @@
       color: var(--text-muted);
     }
 
-    .q-status-played {
-      font-size: 0.7em;
-      font-weight: 800;
-      color: var(--text-muted);
-    }
-
     .q-title {
       font-weight: 700;
       white-space: nowrap;
@@ -477,19 +400,35 @@
 
     .q-actions {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       flex-shrink: 0;
-      flex-wrap: wrap;
-      justify-content: flex-end;
     }
 
     .q-actions button {
-      padding: 6px 8px;
-      font-size: 0.8em;
-      min-height: 38px;
+      padding: 8px 10px;
+      font-size: 0.85em;
     }
 
     .btn-del { color: var(--danger); }
+
+    /* Saved Playlists Bar */
+    .playlist-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    select {
+      flex: 1;
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.95em;
+      min-height: 44px;
+    }
 
     .status-toast {
       position: fixed;
@@ -604,33 +543,23 @@
     </div>
   </div>
 
-  <!-- PLAYLIST MANAGER -->
-  <div class="playlist-panel">
-    <div class="playlist-title-bar">
-      <span>PLAYLISTS</span>
-      <span class="active-pl-badge" id="active-pl-label">Πρόχειρη Λίστα</span>
-    </div>
-    <div class="playlist-row">
-      <select id="saved-playlists" onchange="loadSavedPlaylist(this.value)">
-        <option value="">-- Πρόχειρη Λίστα (Χωρίς όνομα) --</option>
-      </select>
-    </div>
-    <div class="playlist-btns">
-      <button class="btn-save-active" id="btn-update-pl" onclick="updateActivePlaylist()" style="display:none;">💾 Ενημέρωση</button>
-      <button onclick="createNewPlaylist()">➕ Νέα Λίστα</button>
-      <button class="btn-del" id="btn-del-pl" onclick="deleteSavedPlaylist()" style="display:none;">🗑️</button>
-    </div>
-  </div>
-
-  <!-- QUEUE LIST -->
+  <!-- QUEUE & PLAYLISTS -->
   <div class="section-header">
-    <span>ΚΟΜΜΑΤΙΑ (<span id="q-count">0</span>)</span>
-    <div class="header-mini-btns">
-      <button onclick="resetPlayedMarks()" title="Επαναφορά παιγμένων">🔄 Reset</button>
-      <button onclick="clearQueue()">Καθαρισμός</button>
-    </div>
+    <span>ΛΙΣΤΑ ΑΝΑΜΟΝΗΣ (<span id="q-count">0</span>)</span>
+    <button onclick="clearQueue()" style="padding: 6px 10px; font-size: 0.8em;">Καθαρισμός</button>
   </div>
   <ul class="queue-list" id="queue-list"></ul>
+
+  <div class="section-header">
+    <span>ΑΠΟΘΗΚΕΥΜΕΝΕΣ PLAYLISTS</span>
+  </div>
+  <div class="playlist-bar">
+    <select id="saved-playlists" onchange="loadSavedPlaylist(this.value)">
+      <option value="">-- Επιλογή Playlist --</option>
+    </select>
+    <button onclick="saveCurrentPlaylist()">💾 Αποθήκευση</button>
+    <button class="btn-del" onclick="deleteSavedPlaylist()">🗑️</button>
+  </div>
 
   <div class="status-toast" id="toast"></div>
 
@@ -643,15 +572,16 @@
 
     let queue = JSON.parse(localStorage.getItem('dj_active_queue')) || [];
     let savedPlaylists = JSON.parse(localStorage.getItem('dj_saved_playlists')) || {};
-    let activePlaylistName = localStorage.getItem('dj_active_pl_name') || '';
 
     let autoDJ = false;
     let isTransitioning = false;
     let crossfadeValue = 0;
     let wakeLock = null;
 
+    // BroadcastChannel για επικοινωνία με το Tampermonkey στο YT Music
     const bridgeChannel = new BroadcastChannel('yt_music_dj_bridge');
 
+    // Validator state
     let validatorPlayer = null;
     let validatorReady = false;
     let validationQueue = [];
@@ -659,7 +589,7 @@
 
     const decks = {
       A: {
-        source: null,
+        source: null, // 'youtube' | 'ytmusic_bridge' | 'mp3'
         ytPlayer: null,
         ytReady: false,
         pendingTrack: null,
@@ -700,7 +630,7 @@
       d.bridgeDur = msg.duration || 0;
       d.playing = !msg.paused && !msg.ended;
       updateDeckUI(id);
-      updateAudioVolumes();
+      updateAudioVolumes(); // Κρατάει συγχρονισμένη την ένταση στο YT Music tab
 
       if (msg.ended && !d.bridgeEndedHandled) {
         d.bridgeEndedHandled = true;
@@ -716,7 +646,7 @@
       t.textContent = msg;
       t.style.display = 'block';
       clearTimeout(t._timer);
-      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3500);
     }
 
     function changeFontScale(delta) {
@@ -740,6 +670,7 @@
       loadTrackToDeck(id, d.track, true);
     }
 
+    // --- SCREEN WAKE LOCK ---
     async function requestWakeLock() {
       if ('wakeLock' in navigator && !wakeLock) {
         try {
@@ -824,8 +755,11 @@
       delete currentValidatingItem._timeout;
 
       currentValidatingItem.embedStatus = isAllowed ? 'ok' : 'blocked';
+      if (!isAllowed) {
+        showToast(`🚀 "${currentValidatingItem.title}" -> Έτοιμο για YT Music Bridge`);
+      }
       currentValidatingItem = null;
-      saveQueueAndSyncPlaylist();
+      saveQueue();
       renderQueue();
       processNextValidation();
     }
@@ -855,9 +789,10 @@
         const inQ = queue.find(q => q.uri === decks[id].track.uri);
         if (inQ) {
           inQ.embedStatus = 'blocked';
-          saveQueueAndSyncPlaylist();
+          saveQueue();
           renderQueue();
         }
+        // Αυτόματη μετάβαση στο YT Music Bridge!
         showToast(`🚀 Άνοιγμα μέσω YT Music Bridge (Deck ${id})...`);
         loadTrackToDeck(id, decks[id].track, true);
       }
@@ -887,6 +822,7 @@
       overlay.classList.remove('bridge-mode');
 
       if (track.source === 'youtube' && track.embedStatus === 'blocked') {
+        // --- YT MUSIC BRIDGE MODE ---
         d.source = 'ytmusic_bridge';
         d.bridgeTime = 0;
         d.bridgeDur = 0;
@@ -903,6 +839,7 @@
         }
         requestWakeLock();
       } else if (track.source === 'youtube') {
+        // --- STANDARD EMBEDDED YOUTUBE ---
         d.source = 'youtube';
         overlay.style.display = 'none';
         bridgeBtn.style.display = 'inline-flex';
@@ -913,6 +850,7 @@
           d.pendingTrack = { track, autoPlay };
         }
       } else if (track.source === 'mp3') {
+        // --- LOCAL MP3 ---
         d.source = 'mp3';
         bridgeBtn.style.display = 'none';
         overlay.style.display = 'flex';
@@ -945,7 +883,7 @@
     function togglePlay(id) {
       const d = decks[id];
       if (!d.track) {
-        if (queue.length > 0) loadNextUnplayedToDeck(id, true);
+        if (queue.length > 0) loadNextFromQueueToDeck(id, true);
         else showToast('Η λίστα είναι άδεια');
         return;
       }
@@ -1019,13 +957,13 @@
       if (autoDJ) {
         showToast('Auto-DJ ενεργοποιήθηκε');
         if (!decks.A.playing && !decks.B.playing) {
-          if (!decks.A.track && queue.length > 0) loadNextUnplayedToDeck('A', true);
+          if (!decks.A.track && queue.length > 0) loadNextFromQueueToDeck('A', true);
           else if (decks.A.track) togglePlay('A');
         }
         const activeId = crossfadeValue < 50 ? 'A' : 'B';
         const standbyId = activeId === 'A' ? 'B' : 'A';
-        if (!decks[standbyId].track) {
-          loadNextUnplayedToDeck(standbyId, false);
+        if (!decks[standbyId].track && queue.length > 0) {
+          loadNextFromQueueToDeck(standbyId, false);
         }
       }
     }
@@ -1034,8 +972,8 @@
       const nextId = endedId === 'A' ? 'B' : 'A';
       if (decks[nextId].track && !decks[nextId].playing) {
         triggerAutoTransition();
-      } else {
-        loadNextUnplayedToDeck(endedId, true);
+      } else if (queue.length > 0) {
+        loadNextFromQueueToDeck(endedId, true);
       }
     }
 
@@ -1045,8 +983,8 @@
       const toId = fromId === 'A' ? 'B' : 'A';
 
       if (!decks[toId].track) {
-        const loaded = loadNextUnplayedToDeck(toId, false);
-        if (!loaded) { showToast('Δεν υπάρχει άλλο άπαιχτο τραγούδι'); return; }
+        if (queue.length > 0) loadNextFromQueueToDeck(toId, false);
+        else { showToast('Δεν υπάρχει επόμενο τραγούδι'); return; }
       }
 
       isTransitioning = true;
@@ -1070,8 +1008,9 @@
           clearInterval(interval);
           stopDeck(fromId);
           isTransitioning = false;
-          const loadedNext = loadNextUnplayedToDeck(fromId, false);
-          if (!loadedNext) {
+          if (queue.length > 0) {
+            loadNextFromQueueToDeck(fromId, false);
+          } else {
             decks[fromId].track = null;
             document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
             document.getElementById(`bridge-btn-${fromId.toLowerCase()}`).style.display = 'none';
@@ -1108,7 +1047,7 @@
       });
     }, 500);
 
-    // --- QUEUE & INPUTS (ΔΕΝ ΔΙΑΓΡΑΦΕΙ ΤΑ ΚΟΜΜΑΤΙΑ ΟΤΑΝ ΦΟΡΤΩΝΟΝΤΑΙ) ---
+    // --- QUEUE & INPUTS ---
     function extractYouTubeID(url) {
       const regExp = /(?:(?:music\.)?youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
       const match = url.match(regExp);
@@ -1136,12 +1075,11 @@
         if (data.title) title = data.title;
       } catch (e) {}
 
-      const item = { source: 'youtube', uri: videoId, title, embedStatus: 'checking', played: false };
+      const item = { source: 'youtube', uri: videoId, title, embedStatus: 'checking' };
       queue.push(item);
-      saveQueueAndSyncPlaylist();
+      saveQueue();
       renderQueue();
       enqueueValidation(item);
-      showToast(activePlaylistName ? `✅ Προστέθηκε στο "${activePlaylistName}"` : `✅ Προστέθηκε: ${title}`);
     }
 
     async function smartPaste() {
@@ -1159,74 +1097,43 @@
       Array.from(files).forEach(file => {
         const objectUrl = URL.createObjectURL(file);
         const cleanName = file.name.replace(/\.[^/.]+$/, "");
-        queue.push({ source: 'mp3', uri: file.name, title: cleanName, objectUrl, embedStatus: 'ok', played: false });
+        queue.push({ source: 'mp3', uri: file.name, title: cleanName, objectUrl, embedStatus: 'ok' });
       });
-      saveQueueAndSyncPlaylist();
+      saveQueue();
       renderQueue();
-      showToast(activePlaylistName ? `✅ Προστέθηκαν ${files.length} MP3 στο "${activePlaylistName}"` : `✅ Προστέθηκαν ${files.length} MP3`);
+      showToast(`✅ Προστέθηκαν ${files.length} MP3`);
     }
 
-    function loadNextUnplayedToDeck(id, autoPlay) {
-      const nextIdx = queue.findIndex(item => !item.played);
-      if (nextIdx === -1) return false;
-      queue[nextIdx].played = true;
-      saveQueueAndSyncPlaylist();
+    function loadNextFromQueueToDeck(id, autoPlay) {
+      if (queue.length === 0) return;
+      const nextTrack = queue.shift();
+      saveQueue();
       renderQueue();
-      loadTrackToDeck(id, queue[nextIdx], autoPlay);
-      return true;
+      loadTrackToDeck(id, nextTrack, autoPlay);
     }
 
     function loadSpecificToDeck(index, id) {
-      queue[index].played = true;
-      saveQueueAndSyncPlaylist();
+      const track = queue.splice(index, 1)[0];
+      saveQueue();
       renderQueue();
-      loadTrackToDeck(id, queue[index], true);
-    }
-
-    function moveTrack(index, direction) {
-      const newIdx = index + direction;
-      if (newIdx < 0 || newIdx >= queue.length) return;
-      const temp = queue[index];
-      queue[index] = queue[newIdx];
-      queue[newIdx] = temp;
-      saveQueueAndSyncPlaylist();
-      renderQueue();
+      loadTrackToDeck(id, track, true);
     }
 
     function removeFromQueue(index) {
       queue.splice(index, 1);
-      saveQueueAndSyncPlaylist();
+      saveQueue();
       renderQueue();
-    }
-
-    function resetPlayedMarks() {
-      queue.forEach(item => item.played = false);
-      saveQueueAndSyncPlaylist();
-      renderQueue();
-      showToast('🔄 Όλα τα κομμάτια είναι έτοιμα ξανά');
     }
 
     function clearQueue() {
-      if (!confirm('Να αδειάσει η τρέχουσα λίστα;')) return;
       queue = [];
-      saveQueueAndSyncPlaylist();
+      saveQueue();
       renderQueue();
     }
 
-    function getCleanQueueCopy() {
-      return queue.map(({ objectUrl, _timeout, played, ...rest }) => rest);
-    }
-
-    function saveQueueAndSyncPlaylist() {
-      const cleanQueue = getCleanQueueCopy();
+    function saveQueue() {
+      const cleanQueue = queue.map(({ objectUrl, _timeout, ...rest }) => rest);
       localStorage.setItem('dj_active_queue', JSON.stringify(cleanQueue));
-
-      // Αν υπάρχει ενεργή playlist, ενημερώνεται ΑΥΤΟΜΑΤΑ!
-      if (activePlaylistName && savedPlaylists[activePlaylistName]) {
-        savedPlaylists[activePlaylistName] = cleanQueue;
-        localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
-        refreshPlaylistUI();
-      }
     }
 
     function renderQueue() {
@@ -1237,28 +1144,24 @@
       queue.forEach((item, idx) => {
         const li = document.createElement('li');
         const isBridge = item.embedStatus === 'blocked';
-        li.className = 'queue-item' + (isBridge ? ' bridge-item' : '') + (item.played ? ' played-item' : '');
+        li.className = 'queue-item' + (isBridge ? ' bridge-item' : '');
 
         let statusBadge = '';
         if (item.source === 'youtube') {
           if (item.embedStatus === 'ok') statusBadge = '<span class="q-status-ok">✅ Direct</span>';
-          else if (item.embedStatus === 'blocked') statusBadge = '<span class="q-status-bridge">🚀 YT Music</span>';
+          else if (item.embedStatus === 'blocked') statusBadge = '<span class="q-status-bridge">🚀 YT Music Bridge</span>';
           else statusBadge = '<span class="q-status-chk">⏳ Έλεγχος...</span>';
         }
-        const playedBadge = item.played ? '<span class="q-status-played">✓ Έπαιξε</span>' : '';
 
         li.innerHTML = `
           <div class="q-info">
             <div class="q-badges">
-              <span class="q-tag">${idx + 1}. ${item.source === 'youtube' ? 'YT' : 'MP3'}</span>
+              <span class="q-tag">${item.source === 'youtube' ? 'YT' : 'MP3'}</span>
               ${statusBadge}
-              ${playedBadge}
             </div>
             <span class="q-title">${item.title}</span>
           </div>
           <div class="q-actions">
-            <button onclick="moveTrack(${idx}, -1)" title="Πάνω">▲</button>
-            <button onclick="moveTrack(${idx}, 1)" title="Κάτω">▼</button>
             <button onclick="loadSpecificToDeck(${idx}, 'A')">→ A</button>
             <button onclick="loadSpecificToDeck(${idx}, 'B')">→ B</button>
             <button class="btn-del" onclick="removeFromQueue(${idx})">✕</button>
@@ -1268,95 +1171,56 @@
       });
     }
 
-    // --- PLAYLIST STORAGE & ACTIVE SYNC ---
-    function refreshPlaylistUI() {
+    // --- PLAYLIST STORAGE ---
+    function refreshPlaylistDropdown() {
       const sel = document.getElementById('saved-playlists');
-      const label = document.getElementById('active-pl-label');
-      const btnUpdate = document.getElementById('btn-update-pl');
-      const btnDel = document.getElementById('btn-del-pl');
-
-      sel.innerHTML = '<option value="">-- Πρόχειρη Λίστα (Χωρίς όνομα) --</option>';
+      sel.innerHTML = '<option value="">-- Επιλογή Playlist --</option>';
       Object.keys(savedPlaylists).forEach(name => {
         const opt = document.createElement('option');
         opt.value = name;
-        opt.textContent = `📁 ${name} (${savedPlaylists[name].length} κομμάτια)`;
-        if (name === activePlaylistName) opt.selected = true;
+        opt.textContent = `${name} (${savedPlaylists[name].length})`;
         sel.appendChild(opt);
       });
+    }
 
-      if (activePlaylistName && savedPlaylists[activePlaylistName]) {
-        label.textContent = `Ενεργή: ${activePlaylistName} (Auto-Save)`;
-        btnUpdate.style.display = 'inline-flex';
-        btnDel.style.display = 'inline-flex';
-      } else {
-        activePlaylistName = '';
-        localStorage.setItem('dj_active_pl_name', '');
-        label.textContent = 'Πρόχειρη Λίστα';
-        btnUpdate.style.display = 'none';
-        btnDel.style.display = 'none';
+    function saveCurrentPlaylist() {
+      if (queue.length === 0) {
+        showToast('Η λίστα αναμονής είναι άδεια');
+        return;
       }
-    }
-
-    function createNewPlaylist() {
-      const name = prompt('Όνομα νέας Playlist:');
+      const name = prompt('Όνομα Playlist:');
       if (!name || !name.trim()) return;
-      const cleanName = name.trim();
-
-      savedPlaylists[cleanName] = getCleanQueueCopy();
-      activePlaylistName = cleanName;
+      const cleanQueue = queue.map(({ objectUrl, _timeout, ...rest }) => rest);
+      savedPlaylists[name.trim()] = cleanQueue;
       localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
-      localStorage.setItem('dj_active_pl_name', activePlaylistName);
-
-      refreshPlaylistUI();
-      showToast(`✅ Δημιουργήθηκε: "${cleanName}" — Ό,τι προσθέτεις μπαίνει εδώ!`);
-    }
-
-    function updateActivePlaylist() {
-      if (!activePlaylistName) return;
-      savedPlaylists[activePlaylistName] = getCleanQueueCopy();
-      localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
-      refreshPlaylistUI();
-      showToast(`💾 Η λίστα "${activePlaylistName}" ενημερώθηκε!`);
+      refreshPlaylistDropdown();
+      showToast(`💾 Αποθηκεύτηκε: ${name.trim()}`);
     }
 
     function loadSavedPlaylist(name) {
-      activePlaylistName = name;
-      localStorage.setItem('dj_active_pl_name', activePlaylistName);
-
-      if (!name) {
-        // Γύρισε σε πρόχειρη άδεια λίστα για να φτιάξεις νέα από το μηδέν
-        queue = [];
-      } else if (savedPlaylists[name]) {
-        queue = JSON.parse(JSON.stringify(savedPlaylists[name])).map(item => ({ ...item, played: false }));
-        queue.forEach(item => {
-          if (item.source === 'youtube' && !item.embedStatus) enqueueValidation(item);
-        });
-      }
-
-      localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
+      if (!name || !savedPlaylists[name]) return;
+      queue = JSON.parse(JSON.stringify(savedPlaylists[name]));
+      saveQueue();
       renderQueue();
-      refreshPlaylistUI();
-      showToast(name ? `📂 Φορτώθηκε: ${name}` : '📝 Νέα πρόχειρη λίστα');
+      queue.forEach(item => {
+        if (item.source === 'youtube' && !item.embedStatus) enqueueValidation(item);
+      });
+      showToast(`📂 Φορτώθηκε: ${name}`);
     }
 
     function deleteSavedPlaylist() {
-      if (!activePlaylistName) return;
-      if (!confirm(`Να διαγραφεί οριστικά η playlist "${activePlaylistName}";`)) return;
-      const deletedName = activePlaylistName;
-      delete savedPlaylists[deletedName];
-      activePlaylistName = '';
-      queue = [];
+      const sel = document.getElementById('saved-playlists');
+      const name = sel.value;
+      if (!name) return;
+      delete savedPlaylists[name];
       localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
-      localStorage.setItem('dj_active_pl_name', '');
-      localStorage.setItem('dj_active_queue', '[]');
-      renderQueue();
-      refreshPlaylistUI();
-      showToast(`🗑️ Διαγράφηκε: ${deletedName}`);
+      refreshPlaylistDropdown();
+      showToast(`🗑️ Διαγράφηκε: ${name}`);
     }
 
     // Init
     renderQueue();
-    refreshPlaylistUI();
+    refreshPlaylistDropdown();
     queue.forEach(item => {
       if (item.source === 'youtube' && item.embedStatus === 'checking') enqueueValidation(item);
     });
