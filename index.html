@@ -15,6 +15,7 @@
       --accent-a: #3b82f6;
       --accent-b: #f59e0b;
       --accent-auto: #10b981;
+      --accent-bridge: #a855f7;
       --danger: #ef4444;
       --border: #3f3f46;
     }
@@ -106,7 +107,7 @@
       border: none;
     }
 
-    .mp3-badge {
+    .overlay-badge {
       position: absolute;
       inset: 0;
       display: none;
@@ -117,7 +118,14 @@
       font-size: 0.85em;
       color: var(--text-muted);
       text-align: center;
-      padding: 6px;
+      padding: 8px;
+      z-index: 5;
+    }
+
+    .overlay-badge.bridge-mode {
+      background: #2e1065;
+      color: #e9d5ff;
+      border: 1px solid var(--accent-bridge);
     }
 
     /* Deck Cards */
@@ -161,10 +169,10 @@
       flex: 1;
     }
 
-    .btn-alt-deck {
-      background: #450a0a;
-      border-color: var(--danger);
-      color: #fca5a5;
+    .btn-bridge-deck {
+      background: #3b0764;
+      border-color: var(--accent-bridge);
+      color: #f3e8ff;
       padding: 6px 10px;
       font-size: 0.8em;
       min-height: 36px;
@@ -339,9 +347,9 @@
       gap: 8px;
     }
 
-    .queue-item.blocked {
-      border-color: var(--danger);
-      background: #1c1012;
+    .queue-item.bridge-item {
+      border-color: var(--accent-bridge);
+      background: #1a1025;
     }
 
     .q-info {
@@ -370,10 +378,10 @@
       color: var(--accent-auto);
     }
 
-    .q-status-err {
+    .q-status-bridge {
       font-size: 0.7em;
       font-weight: 800;
-      color: var(--danger);
+      color: #d8b4fe;
     }
 
     .q-status-chk {
@@ -399,12 +407,6 @@
     .q-actions button {
       padding: 8px 10px;
       font-size: 0.85em;
-    }
-
-    .btn-find {
-      background: #450a0a;
-      border-color: var(--danger);
-      color: #fca5a5;
     }
 
     .btn-del { color: var(--danger); }
@@ -461,15 +463,15 @@
   <div class="video-dock">
     <div class="yt-wrapper">
       <div id="yt-player-a"></div>
-      <div id="mp3-badge-a" class="mp3-badge">🎵 LOCAL MP3 (DECK A)</div>
+      <div id="overlay-a" class="overlay-badge"></div>
     </div>
     <div class="yt-wrapper">
       <div id="yt-player-b"></div>
-      <div id="mp3-badge-b" class="mp3-badge">🎵 LOCAL MP3 (DECK B)</div>
+      <div id="overlay-b" class="overlay-badge"></div>
     </div>
   </div>
 
-  <!-- Κρυφός Player για αθόρυβο έλεγχο φραγής βίντεο -->
+  <!-- Κρυφός Player για αθόρυβο έλεγχο φραγής -->
   <div style="position:fixed; left:-9999px; width:200px; height:200px; pointer-events:none; opacity:0;">
     <div id="yt-validator"></div>
   </div>
@@ -482,7 +484,7 @@
     </div>
     <div class="title-row">
       <div class="track-title" id="title-a">Κενό Deck — Φόρτωσε από τη λίστα</div>
-      <button class="btn-alt-deck" id="alt-a" onclick="searchAlternativeForDeck('A')">🔎 Βρες άλλο</button>
+      <button class="btn-bridge-deck" id="bridge-btn-a" onclick="forceBridgeMode('A')">🚀 YT Music</button>
     </div>
     <div class="deck-controls">
       <button class="btn-play" id="play-a" onclick="togglePlay('A')">▶ Play</button>
@@ -502,7 +504,7 @@
     </div>
     <div class="title-row">
       <div class="track-title" id="title-b">Κενό Deck — Φόρτωσε από τη λίστα</div>
-      <button class="btn-alt-deck" id="alt-b" onclick="searchAlternativeForDeck('B')">🔎 Βρες άλλο</button>
+      <button class="btn-bridge-deck" id="bridge-btn-b" onclick="forceBridgeMode('B')">🚀 YT Music</button>
     </div>
     <div class="deck-controls">
       <button class="btn-play" id="play-b" onclick="togglePlay('B')">▶ Play</button>
@@ -576,6 +578,9 @@
     let crossfadeValue = 0;
     let wakeLock = null;
 
+    // BroadcastChannel για επικοινωνία με το Tampermonkey στο YT Music
+    const bridgeChannel = new BroadcastChannel('yt_music_dj_bridge');
+
     // Validator state
     let validatorPlayer = null;
     let validatorReady = false;
@@ -584,10 +589,14 @@
 
     const decks = {
       A: {
-        source: null,
+        source: null, // 'youtube' | 'ytmusic_bridge' | 'mp3'
         ytPlayer: null,
         ytReady: false,
         pendingTrack: null,
+        bridgeWin: null,
+        bridgeTime: 0,
+        bridgeDur: 0,
+        bridgeEndedHandled: false,
         audioEl: new Audio(),
         volume: 100,
         playing: false,
@@ -598,10 +607,36 @@
         ytPlayer: null,
         ytReady: false,
         pendingTrack: null,
+        bridgeWin: null,
+        bridgeTime: 0,
+        bridgeDur: 0,
+        bridgeEndedHandled: false,
         audioEl: new Audio(),
         volume: 100,
         playing: false,
         track: null
+      }
+    };
+
+    // --- ΛΗΨΗ ΚΑΤΑΣΤΑΣΗΣ ΑΠΟ YT MUSIC BRIDGE ---
+    bridgeChannel.onmessage = (e) => {
+      const msg = e.data;
+      if (msg.type !== 'STATUS') return;
+      const id = msg.deck;
+      const d = decks[id];
+      if (!d || d.source !== 'ytmusic_bridge') return;
+
+      d.bridgeTime = msg.currentTime || 0;
+      d.bridgeDur = msg.duration || 0;
+      d.playing = !msg.paused && !msg.ended;
+      updateDeckUI(id);
+      updateAudioVolumes(); // Κρατάει συγχρονισμένη την ένταση στο YT Music tab
+
+      if (msg.ended && !d.bridgeEndedHandled) {
+        d.bridgeEndedHandled = true;
+        d.playing = false;
+        updateDeckUI(id);
+        if (autoDJ) handleTrackEnded(id);
       }
     };
 
@@ -611,7 +646,7 @@
       t.textContent = msg;
       t.style.display = 'block';
       clearTimeout(t._timer);
-      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3400);
+      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3500);
     }
 
     function changeFontScale(delta) {
@@ -628,19 +663,11 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    function openYouTubeSearch(title) {
-      const cleanQuery = encodeURIComponent(`${title} lyrics`);
-      window.open(`https://www.youtube.com/results?search_query=${cleanQuery}`, '_blank');
-    }
-
-    function searchAlternativeForDeck(id) {
-      if (decks[id].track) openYouTubeSearch(decks[id].track.title);
-    }
-
-    if (window.location.protocol === 'file:') {
-      setTimeout(() => {
-        showToast('⚠️ Άνοιξέ το μέσω Live Server (localhost) για να παίξει το YouTube');
-      }, 800);
+    function forceBridgeMode(id) {
+      const d = decks[id];
+      if (!d.track || d.track.source !== 'youtube') return;
+      d.track.embedStatus = 'blocked';
+      loadTrackToDeck(id, d.track, true);
     }
 
     // --- SCREEN WAKE LOCK ---
@@ -678,7 +705,6 @@
         });
       });
 
-      // Αθόρυβος Validator Player για έλεγχο φραγής (περιμένει αυστηρά PLAYING)
       validatorPlayer = new YT.Player('yt-validator', {
         height: '200',
         width: '200',
@@ -730,7 +756,7 @@
 
       currentValidatingItem.embedStatus = isAllowed ? 'ok' : 'blocked';
       if (!isAllowed) {
-        showToast(`🔒 Το "${currentValidatingItem.title}" είναι κλειδωμένο. Πάτα "🔎 Βρες άλλο"`);
+        showToast(`🚀 "${currentValidatingItem.title}" -> Έτοιμο για YT Music Bridge`);
       }
       currentValidatingItem = null;
       saveQueue();
@@ -744,7 +770,7 @@
 
       if (event.data === YT.PlayerState.PLAYING) {
         d.playing = true;
-        document.getElementById(`alt-${id.toLowerCase()}`).style.display = 'none';
+        document.getElementById(`bridge-btn-${id.toLowerCase()}`).style.display = 'none';
         updateDeckUI(id);
         requestWakeLock();
       } else if (event.data === YT.PlayerState.PAUSED) {
@@ -758,7 +784,6 @@
     }
 
     function onDeckError(id, errCode) {
-      document.getElementById(`alt-${id.toLowerCase()}`).style.display = 'inline-flex';
       if (decks[id].track) {
         decks[id].track.embedStatus = 'blocked';
         const inQ = queue.find(q => q.uri === decks[id].track.uri);
@@ -767,10 +792,9 @@
           saveQueue();
           renderQueue();
         }
-      }
-      showToast(`🔒 Deck ${id}: Κλειδωμένο από YouTube. Πάτα "Βρες άλλο"`);
-      if (autoDJ) {
-        setTimeout(() => loadNextFromQueueToDeck(id, true), 1200);
+        // Αυτόματη μετάβαση στο YT Music Bridge!
+        showToast(`🚀 Άνοιγμα μέσω YT Music Bridge (Deck ${id})...`);
+        loadTrackToDeck(id, decks[id].track, true);
       }
     }
 
@@ -791,14 +815,34 @@
       const d = decks[id];
       stopDeck(id);
       d.track = track;
-      d.source = track.source;
 
       document.getElementById(`title-${id.toLowerCase()}`).textContent = track.title;
-      document.getElementById(`alt-${id.toLowerCase()}`).style.display = (track.embedStatus === 'blocked') ? 'inline-flex' : 'none';
-      const mp3Badge = document.getElementById(`mp3-badge-${id.toLowerCase()}`);
+      const overlay = document.getElementById(`overlay-${id.toLowerCase()}`);
+      const bridgeBtn = document.getElementById(`bridge-btn-${id.toLowerCase()}`);
+      overlay.classList.remove('bridge-mode');
 
-      if (track.source === 'youtube') {
-        mp3Badge.style.display = 'none';
+      if (track.source === 'youtube' && track.embedStatus === 'blocked') {
+        // --- YT MUSIC BRIDGE MODE ---
+        d.source = 'ytmusic_bridge';
+        d.bridgeTime = 0;
+        d.bridgeDur = 0;
+        d.bridgeEndedHandled = false;
+        bridgeBtn.style.display = 'inline-flex';
+        overlay.style.display = 'flex';
+        overlay.classList.add('bridge-mode');
+        overlay.textContent = `🚀 YT MUSIC BRIDGE (${id})\nΠαίζει στην καρτέλα YT Music`;
+
+        const url = `https://music.youtube.com/watch?v=${track.uri}&dj_deck=${id}`;
+        d.bridgeWin = window.open(url, `yt_music_deck_${id}`);
+        if (!d.bridgeWin) {
+          showToast('⚠️ Επίτρεψε τα Pop-ups στον browser για να ανοίξει το YT Music');
+        }
+        requestWakeLock();
+      } else if (track.source === 'youtube') {
+        // --- STANDARD EMBEDDED YOUTUBE ---
+        d.source = 'youtube';
+        overlay.style.display = 'none';
+        bridgeBtn.style.display = 'inline-flex';
         if (d.ytReady) {
           if (autoPlay) d.ytPlayer.loadVideoById(track.uri);
           else d.ytPlayer.cueVideoById(track.uri);
@@ -806,8 +850,11 @@
           d.pendingTrack = { track, autoPlay };
         }
       } else if (track.source === 'mp3') {
-        mp3Badge.style.display = 'flex';
-        mp3Badge.textContent = `🎵 MP3: ${track.title}`;
+        // --- LOCAL MP3 ---
+        d.source = 'mp3';
+        bridgeBtn.style.display = 'none';
+        overlay.style.display = 'flex';
+        overlay.textContent = `🎵 MP3: ${track.title}`;
         if (track.objectUrl) {
           d.audioEl.src = track.objectUrl;
           if (autoPlay) d.audioEl.play().catch(() => showToast('Πάτα Play για εκκίνηση ήχου'));
@@ -824,6 +871,10 @@
       if (d.ytReady && d.ytPlayer.stopVideo) {
         try { d.ytPlayer.stopVideo(); } catch(e) {}
       }
+      if (d.source === 'ytmusic_bridge') {
+        bridgeChannel.postMessage({ deck: id, action: 'PAUSE' });
+        bridgeChannel.postMessage({ deck: id, action: 'VOLUME', value: 0 });
+      }
       d.audioEl.pause();
       d.audioEl.currentTime = 0;
       d.playing = false;
@@ -837,7 +888,12 @@
         return;
       }
 
-      if (d.source === 'youtube' && d.ytReady) {
+      if (d.source === 'ytmusic_bridge') {
+        const nextAction = d.playing ? 'PAUSE' : 'PLAY';
+        bridgeChannel.postMessage({ deck: id, action: nextAction });
+        d.playing = !d.playing;
+        updateDeckUI(id);
+      } else if (d.source === 'youtube' && d.ytReady) {
         if (d.playing) d.ytPlayer.pauseVideo();
         else d.ytPlayer.playVideo();
       } else if (d.source === 'mp3') {
@@ -880,9 +936,15 @@
 
       if (decks.A.ytReady && decks.A.ytPlayer.setVolume) decks.A.ytPlayer.setVolume(finalA);
       decks.A.audioEl.volume = finalA / 100;
+      if (decks.A.source === 'ytmusic_bridge') {
+        bridgeChannel.postMessage({ deck: 'A', action: 'VOLUME', value: finalA });
+      }
 
       if (decks.B.ytReady && decks.B.ytPlayer.setVolume) decks.B.ytPlayer.setVolume(finalB);
       decks.B.audioEl.volume = finalB / 100;
+      if (decks.B.source === 'ytmusic_bridge') {
+        bridgeChannel.postMessage({ deck: 'B', action: 'VOLUME', value: finalB });
+      }
     }
 
     // --- AUTO-DJ ENGINE ---
@@ -951,7 +1013,7 @@
           } else {
             decks[fromId].track = null;
             document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
-            document.getElementById(`alt-${fromId.toLowerCase()}`).style.display = 'none';
+            document.getElementById(`bridge-btn-${fromId.toLowerCase()}`).style.display = 'none';
           }
         }
       }, durationMs / steps);
@@ -963,7 +1025,10 @@
         const d = decks[id];
         let cur = 0, dur = 0;
 
-        if (d.source === 'youtube' && d.ytReady && d.ytPlayer.getCurrentTime) {
+        if (d.source === 'ytmusic_bridge') {
+          cur = d.bridgeTime;
+          dur = d.bridgeDur;
+        } else if (d.source === 'youtube' && d.ytReady && d.ytPlayer.getCurrentTime) {
           cur = d.ytPlayer.getCurrentTime() || 0;
           dur = d.ytPlayer.getDuration() || 0;
         } else if (d.source === 'mp3') {
@@ -1078,17 +1143,15 @@
 
       queue.forEach((item, idx) => {
         const li = document.createElement('li');
-        const isBlocked = item.embedStatus === 'blocked';
-        li.className = 'queue-item' + (isBlocked ? ' blocked' : '');
+        const isBridge = item.embedStatus === 'blocked';
+        li.className = 'queue-item' + (isBridge ? ' bridge-item' : '');
 
         let statusBadge = '';
         if (item.source === 'youtube') {
-          if (item.embedStatus === 'ok') statusBadge = '<span class="q-status-ok">✅ OK</span>';
-          else if (item.embedStatus === 'blocked') statusBadge = '<span class="q-status-err">🔒 Κλειδωμένο</span>';
+          if (item.embedStatus === 'ok') statusBadge = '<span class="q-status-ok">✅ Direct</span>';
+          else if (item.embedStatus === 'blocked') statusBadge = '<span class="q-status-bridge">🚀 YT Music Bridge</span>';
           else statusBadge = '<span class="q-status-chk">⏳ Έλεγχος...</span>';
         }
-
-        const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
         li.innerHTML = `
           <div class="q-info">
@@ -1099,11 +1162,8 @@
             <span class="q-title">${item.title}</span>
           </div>
           <div class="q-actions">
-            ${isBlocked
-              ? `<button class="btn-find" onclick="openYouTubeSearch('${safeTitle}')">🔎 Βρες άλλο</button>`
-              : `<button onclick="loadSpecificToDeck(${idx}, 'A')">→ A</button>
-                 <button onclick="loadSpecificToDeck(${idx}, 'B')">→ B</button>`
-            }
+            <button onclick="loadSpecificToDeck(${idx}, 'A')">→ A</button>
+            <button onclick="loadSpecificToDeck(${idx}, 'B')">→ B</button>
             <button class="btn-del" onclick="removeFromQueue(${idx})">✕</button>
           </div>
         `;
