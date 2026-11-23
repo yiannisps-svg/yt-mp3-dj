@@ -254,6 +254,27 @@
       border: 2px solid #ffffff;
     }
 
+    /* Cue In / Cue Out Controls */
+    .cue-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .cue-row button {
+      min-height: 34px;
+      padding: 4px 8px;
+      font-size: 0.8em;
+      color: #d4d4d8;
+    }
+
+    .cue-row button.cue-active {
+      border-color: var(--accent-auto);
+      background: #064e3b;
+      color: #a7f3d0;
+    }
+
     /* Mixer / Crossfader */
     .mixer {
       background: var(--bg-card);
@@ -385,6 +406,22 @@
       gap: 8px;
     }
 
+    .playlist-backup-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .playlist-backup-row button {
+      font-size: 0.85em;
+      min-height: 38px;
+      padding: 6px 10px;
+      color: #d4d4d8;
+    }
+
     .btn-save-active {
       background: #064e3b;
       border-color: var(--accent-auto);
@@ -419,7 +456,40 @@
 
     .quick-btns {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .quick-btns button {
+      padding: 8px 6px;
+      font-size: 0.85em;
+    }
+
+    /* Bulk Import Modal Box */
+    .bulk-box {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .bulk-box textarea {
+      width: 100%;
+      height: 110px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.85em;
+      resize: vertical;
+      margin-bottom: 8px;
+      font-family: inherit;
+    }
+
+    .bulk-actions {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
       gap: 8px;
     }
 
@@ -490,6 +560,15 @@
       padding: 2px 6px;
       border-radius: 4px;
       background: var(--bg-input);
+    }
+
+    .q-cue-tag {
+      font-size: 0.68em;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #064e3b;
+      color: #a7f3d0;
     }
 
     .q-status-ok {
@@ -638,6 +717,11 @@
     </div>
     <input type="range" class="seek-slider" id="seek-a" min="0" max="1000" value="0"
       oninput="onSeekInput('A', this.value)" onchange="onSeekCommit('A', this.value)" />
+    <div class="cue-row">
+      <button id="cue-in-btn-a" onclick="setDeckCueIn('A')">📍 In: 00:00</button>
+      <button id="cue-out-btn-a" onclick="setDeckCueOut('A')">🏁 Out: Τέλος</button>
+      <button onclick="clearDeckCues('A')" title="Καθαρισμός Cue">✕</button>
+    </div>
   </div>
 
   <!-- DECK B -->
@@ -659,6 +743,11 @@
     </div>
     <input type="range" class="seek-slider" id="seek-b" min="0" max="1000" value="0"
       oninput="onSeekInput('B', this.value)" onchange="onSeekCommit('B', this.value)" />
+    <div class="cue-row">
+      <button id="cue-in-btn-b" onclick="setDeckCueIn('B')">📍 In: 00:00</button>
+      <button id="cue-out-btn-b" onclick="setDeckCueOut('B')">🏁 Out: Τέλος</button>
+      <button onclick="clearDeckCues('B')" title="Καθαρισμός Cue">✕</button>
+    </div>
   </div>
 
   <!-- MIXER & CROSSFADER -->
@@ -696,13 +785,23 @@
   <!-- ADD TRACKS -->
   <div class="add-box">
     <div class="input-row">
-      <input type="text" id="yt-url-input" placeholder="YouTube link..." />
+      <input type="text" id="yt-url-input" placeholder="YouTube video ή playlist link..." />
       <button onclick="addYouTubeFromInput()">+ Προσθήκη</button>
     </div>
     <div class="quick-btns">
-      <button onclick="smartPaste()">📋 Smart Paste</button>
-      <button onclick="document.getElementById('mp3-picker').click()">📁 + MP3 Αρχεία</button>
+      <button onclick="smartPaste()">📋 Paste</button>
+      <button onclick="toggleBulkBox()">📥 Μαζικά</button>
+      <button onclick="document.getElementById('mp3-picker').click()">📁 + MP3</button>
       <input type="file" id="mp3-picker" accept="audio/*" multiple style="display:none" onchange="handleMP3Files(this.files)" />
+    </div>
+
+    <!-- Bulk Import Area -->
+    <div class="bulk-box" id="bulk-box">
+      <textarea id="bulk-textarea" placeholder="Κάνε επικόλληση πολλά YouTube links (ένα ανά γραμμή) ή κείμενο με links..."></textarea>
+      <div class="bulk-actions">
+        <button class="btn-save-active" onclick="processBulkLinks()">✅ Εισαγωγή Όλων</button>
+        <button onclick="toggleBulkBox()">Κλείσιμο</button>
+      </div>
     </div>
   </div>
 
@@ -721,6 +820,11 @@
       <button class="btn-save-active" id="btn-update-pl" onclick="updateActivePlaylist()" style="display:none;">💾 Ενημέρωση</button>
       <button onclick="createNewPlaylist()">➕ Νέα Λίστα</button>
       <button class="btn-del" id="btn-del-pl" onclick="deleteSavedPlaylist()" style="display:none;">🗑️</button>
+    </div>
+    <div class="playlist-backup-row">
+      <button onclick="exportPlaylists()">📤 Export Backup</button>
+      <button onclick="document.getElementById('import-pl-picker').click()">📥 Import Backup</button>
+      <input type="file" id="import-pl-picker" accept=".json,application/json" style="display:none" onchange="importPlaylists(this.files[0])" />
     </div>
   </div>
 
@@ -746,7 +850,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v1.6.0 • Auto-DJ Timing';
+    const APP_VERSION = 'v1.8.0 • Cue + YT Playlist';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
@@ -763,7 +867,7 @@
     let savedPlaylists = JSON.parse(localStorage.getItem('dj_saved_playlists')) || {};
     let activePlaylistName = localStorage.getItem('dj_active_pl_name') || '';
 
-    // Auto-DJ Timing Settings (saved in localStorage)
+    // Auto-DJ Timing Settings
     let autoFadeSec = parseInt(localStorage.getItem('dj_fade_sec')) || 6;
     let autoLeadSec = parseInt(localStorage.getItem('dj_lead_sec')) || 8;
     document.getElementById('fade-dur-slider').value = autoFadeSec;
@@ -800,6 +904,8 @@
         volume: 100,
         playing: false,
         isSeeking: false,
+        appliedCueIn: false,
+        currentTime: 0,
         duration: 0,
         track: null
       },
@@ -812,6 +918,8 @@
         volume: 100,
         playing: false,
         isSeeking: false,
+        appliedCueIn: false,
+        currentTime: 0,
         duration: 0,
         track: null
       }
@@ -823,7 +931,7 @@
       t.textContent = msg;
       t.style.display = 'block';
       clearTimeout(t._timer);
-      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+      t._timer = setTimeout(() => { t.style.display = 'none'; }, 3600);
     }
 
     function changeFontScale(delta) {
@@ -858,6 +966,75 @@
       }
     }
 
+    // --- CUE IN / CUE OUT LOGIC ---
+    function updateDeckCueButtons(id) {
+      const track = decks[id].track;
+      const inBtn = document.getElementById(`cue-in-btn-${id.toLowerCase()}`);
+      const outBtn = document.getElementById(`cue-out-btn-${id.toLowerCase()}`);
+
+      if (track && track.cueIn > 0) {
+        inBtn.textContent = `📍 In: ${formatTime(track.cueIn)}`;
+        inBtn.classList.add('cue-active');
+      } else {
+        inBtn.textContent = '📍 In: 00:00';
+        inBtn.classList.remove('cue-active');
+      }
+
+      if (track && track.cueOut > 0) {
+        outBtn.textContent = `🏁 Out: ${formatTime(track.cueOut)}`;
+        outBtn.classList.add('cue-active');
+      } else {
+        outBtn.textContent = '🏁 Out: Τέλος';
+        outBtn.classList.remove('cue-active');
+      }
+    }
+
+    function syncTrackCuesToQueue(track) {
+      if (!track) return;
+      const inQ = queue.find(q => q.uri === track.uri && q.source === track.source);
+      if (inQ) {
+        inQ.cueIn = track.cueIn || 0;
+        inQ.cueOut = track.cueOut || 0;
+      }
+      saveQueueAndSyncPlaylist();
+      renderQueue();
+    }
+
+    function setDeckCueIn(id) {
+      const d = decks[id];
+      if (!d.track) { showToast('Φόρτωσε πρώτα ένα τραγούδι στο Deck'); return; }
+      const sec = Math.floor(d.currentTime);
+      d.track.cueIn = sec;
+      d.appliedCueIn = true;
+      updateDeckCueButtons(id);
+      syncTrackCuesToQueue(d.track);
+      showToast(`📍 Cue In ορίστηκε στο ${formatTime(sec)}`);
+    }
+
+    function setDeckCueOut(id) {
+      const d = decks[id];
+      if (!d.track) { showToast('Φόρτωσε πρώτα ένα τραγούδι στο Deck'); return; }
+      const sec = Math.floor(d.currentTime);
+      if (sec <= (d.track.cueIn || 0) + 2) {
+        showToast('⚠️ Το Cue Out πρέπει να είναι μετά το Cue In');
+        return;
+      }
+      d.track.cueOut = sec;
+      updateDeckCueButtons(id);
+      syncTrackCuesToQueue(d.track);
+      showToast(`🏁 Cue Out ορίστηκε στο ${formatTime(sec)}`);
+    }
+
+    function clearDeckCues(id) {
+      const d = decks[id];
+      if (!d.track) return;
+      d.track.cueIn = 0;
+      d.track.cueOut = 0;
+      updateDeckCueButtons(id);
+      syncTrackCuesToQueue(d.track);
+      showToast('Καθαρίστηκαν τα Cue In / Out');
+    }
+
     // --- SEEK BAR LOGIC ---
     function onSeekInput(id, val) {
       const d = decks[id];
@@ -872,6 +1049,7 @@
       const d = decks[id];
       if (d.duration > 0) {
         const targetSec = (Number(val) / 1000) * d.duration;
+        d.appliedCueIn = true;
         if (d.source === 'youtube' && d.ytReady && d.ytPlayer.seekTo) {
           d.ytPlayer.seekTo(targetSec, true);
         } else if (d.source === 'mp3') {
@@ -972,6 +1150,10 @@
       if (event.data === YT.PlayerState.PLAYING) {
         d.playing = true;
         document.getElementById(`alt-${id.toLowerCase()}`).style.display = 'none';
+        if (!d.appliedCueIn && d.track && d.track.cueIn > 0) {
+          d.appliedCueIn = true;
+          d.ytPlayer.seekTo(d.track.cueIn, true);
+        }
         updateDeckUI(id);
         requestWakeLock();
       } else if (event.data === YT.PlayerState.PAUSED) {
@@ -1004,7 +1186,16 @@
     // --- MP3 AUDIO EVENTS ---
     ['A', 'B'].forEach(id => {
       const audio = decks[id].audioEl;
-      audio.addEventListener('play', () => { decks[id].playing = true; updateDeckUI(id); requestWakeLock(); });
+      audio.addEventListener('play', () => {
+        const d = decks[id];
+        d.playing = true;
+        if (!d.appliedCueIn && d.track && d.track.cueIn > 0) {
+          d.appliedCueIn = true;
+          audio.currentTime = d.track.cueIn;
+        }
+        updateDeckUI(id);
+        requestWakeLock();
+      });
       audio.addEventListener('pause', () => { decks[id].playing = false; updateDeckUI(id); });
       audio.addEventListener('ended', () => {
         decks[id].playing = false;
@@ -1020,17 +1211,26 @@
       d.track = track;
       d.source = track.source;
       d.duration = 0;
+      d.currentTime = track.cueIn || 0;
+      d.appliedCueIn = false;
       document.getElementById(`seek-${id.toLowerCase()}`).value = 0;
 
       document.getElementById(`title-${id.toLowerCase()}`).textContent = track.title;
       document.getElementById(`alt-${id.toLowerCase()}`).style.display = (track.embedStatus === 'blocked') ? 'inline-flex' : 'none';
+      updateDeckCueButtons(id);
+
       const overlay = document.getElementById(`overlay-${id.toLowerCase()}`);
 
       if (track.source === 'youtube') {
         overlay.style.display = 'none';
         if (d.ytReady) {
-          if (autoPlay) d.ytPlayer.loadVideoById(track.uri);
-          else d.ytPlayer.cueVideoById(track.uri);
+          const startSec = track.cueIn || 0;
+          if (autoPlay) {
+            d.appliedCueIn = true;
+            d.ytPlayer.loadVideoById({ videoId: track.uri, startSeconds: startSec });
+          } else {
+            d.ytPlayer.cueVideoById({ videoId: track.uri, startSeconds: startSec });
+          }
         } else {
           d.pendingTrack = { track, autoPlay };
         }
@@ -1039,6 +1239,10 @@
         overlay.textContent = `🎵 MP3: ${track.title}`;
         if (track.objectUrl) {
           d.audioEl.src = track.objectUrl;
+          if (track.cueIn > 0) {
+            d.audioEl.currentTime = track.cueIn;
+            d.appliedCueIn = true;
+          }
           if (autoPlay) d.audioEl.play().catch(() => showToast('Πάτα Play για εκκίνηση ήχου'));
         } else {
           showToast('⚠️ Ξαναεπίλεξε το MP3 αρχείο από τη συσκευή');
@@ -1056,6 +1260,7 @@
       d.audioEl.pause();
       d.audioEl.currentTime = 0;
       d.playing = false;
+      d.appliedCueIn = false;
       document.getElementById(`seek-${id.toLowerCase()}`).value = 0;
     }
 
@@ -1181,12 +1386,13 @@
             decks[fromId].track = null;
             document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
             document.getElementById(`alt-${fromId.toLowerCase()}`).style.display = 'none';
+            updateDeckCueButtons(fromId);
           }
         }
       }, durationMs / steps);
     }
 
-    // Monitoring Loop
+    // Monitoring Loop (with Cue Out awareness)
     setInterval(() => {
       ['A', 'B'].forEach(id => {
         const d = decks[id];
@@ -1200,6 +1406,7 @@
           dur = d.audioEl.duration || 0;
         }
 
+        d.currentTime = cur;
         d.duration = dur;
 
         if (!d.isSeeking) {
@@ -1208,18 +1415,106 @@
           document.getElementById(`seek-${id.toLowerCase()}`).value = sliderVal;
         }
 
-        if (autoDJ && d.playing && !isTransitioning && dur > (autoLeadSec + 4) && (dur - cur) <= autoLeadSec) {
+        const effectiveEnd = (d.track && d.track.cueOut > 0 && (dur === 0 || d.track.cueOut < dur))
+          ? d.track.cueOut
+          : dur;
+
+        if (autoDJ && d.playing && !isTransitioning && effectiveEnd > (autoLeadSec + 3) && (effectiveEnd - cur) <= autoLeadSec) {
           const isCurrentActive = (id === 'A' && crossfadeValue < 50) || (id === 'B' && crossfadeValue >= 50);
           if (isCurrentActive) triggerAutoTransition();
         }
       });
     }, 350);
 
-    // --- QUEUE & INPUTS ---
+    // --- QUEUE, YOUTUBE PLAYLIST & BULK IMPORT ---
     function extractYouTubeID(url) {
       const regExp = /(?:(?:music\.)?youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
       const match = url.match(regExp);
       return match ? match[1] : null;
+    }
+
+    function extractPlaylistID(url) {
+      const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : null;
+    }
+
+    async function fetchTrackTitle(videoId) {
+      try {
+        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+        const data = await res.json();
+        if (data.title) return data.title;
+      } catch (e) {}
+      return `YouTube Video (${videoId})`;
+    }
+
+    async function addSingleVideoId(videoId, knownTitle = null) {
+      const title = knownTitle || await fetchTrackTitle(videoId);
+      const item = {
+        source: 'youtube',
+        uri: videoId,
+        title,
+        cueIn: 0,
+        cueOut: 0,
+        embedStatus: 'checking',
+        played: false
+      };
+      queue.push(item);
+      enqueueValidation(item);
+      return item;
+    }
+
+    async function importYouTubePlaylistById(listId) {
+      showToast('⏳ Ανάγνωση YouTube Playlist...');
+      const endpoints = [
+        `https://pipedapi.kavin.rocks/playlists/${listId}`,
+        `https://pipedapi.adminforge.de/playlists/${listId}`,
+        `https://invidious.nerdvpn.de/api/v1/playlists/${listId}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep);
+          if (!res.ok) continue;
+          const data = await res.json();
+
+          let videos = [];
+          if (Array.isArray(data.relatedStreams)) {
+            videos = data.relatedStreams.map(v => ({
+              id: extractYouTubeID('https://youtube.com' + v.url),
+              title: v.title
+            })).filter(v => v.id);
+          } else if (Array.isArray(data.videos)) {
+            videos = data.videos.map(v => ({
+              id: v.videoId,
+              title: v.title
+            })).filter(v => v.id);
+          }
+
+          if (videos.length > 0) {
+            videos.forEach(v => {
+              const item = {
+                source: 'youtube',
+                uri: v.id,
+                title: v.title || `YouTube Video (${v.id})`,
+                cueIn: 0,
+                cueOut: 0,
+                embedStatus: 'checking',
+                played: false
+              };
+              queue.push(item);
+              enqueueValidation(item);
+            });
+            saveQueueAndSyncPlaylist();
+            renderQueue();
+            showToast(`✅ Προστέθηκαν ${videos.length} τραγούδια από την Playlist!`);
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      showToast('⚠️ Το YouTube μπλόκαρε την αυτόματη ανάγνωση — δοκίμασε "📥 Μαζικά"');
+      toggleBulkBox(true);
+      return false;
     }
 
     async function addYouTubeFromInput() {
@@ -1227,7 +1522,24 @@
       const url = input.value.trim();
       if (!url) return;
 
+      const listId = extractPlaylistID(url);
       const videoId = extractYouTubeID(url);
+
+      if (listId && !videoId) {
+        input.value = '';
+        await importYouTubePlaylistById(listId);
+        return;
+      }
+
+      if (listId && videoId) {
+        const importWhole = confirm('Αυτό το link ανήκει σε Playlist.\nOK = Εισαγωγή όλης της Playlist\nΆκυρο = Μόνο αυτό το τραγούδι');
+        if (importWhole) {
+          input.value = '';
+          await importYouTubePlaylistById(listId);
+          return;
+        }
+      }
+
       if (!videoId) {
         showToast('❌ Μη έγκυρο YouTube link');
         return;
@@ -1235,20 +1547,10 @@
 
       input.value = '';
       showToast('Έλεγχος κομματιού...');
-
-      let title = `YouTube Video (${videoId})`;
-      try {
-        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
-        const data = await res.json();
-        if (data.title) title = data.title;
-      } catch (e) {}
-
-      const item = { source: 'youtube', uri: videoId, title, embedStatus: 'checking', played: false };
-      queue.push(item);
+      const item = await addSingleVideoId(videoId);
       saveQueueAndSyncPlaylist();
       renderQueue();
-      enqueueValidation(item);
-      showToast(activePlaylistName ? `✅ Προστέθηκε στο "${activePlaylistName}"` : `✅ Προστέθηκε: ${title}`);
+      showToast(activePlaylistName ? `✅ Προστέθηκε στο "${activePlaylistName}"` : `✅ Προστέθηκε: ${item.title}`);
     }
 
     async function smartPaste() {
@@ -1261,12 +1563,50 @@
       }
     }
 
+    function toggleBulkBox(forceOpen = null) {
+      const box = document.getElementById('bulk-box');
+      if (forceOpen === true) box.style.display = 'block';
+      else box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+    }
+
+    async function processBulkLinks() {
+      const raw = document.getElementById('bulk-textarea').value;
+      const regex = /(?:(?:music\.)?youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/g;
+      const matches = [...raw.matchAll(regex)].map(m => m[1]);
+      const uniqueIds = [...new Set(matches)];
+
+      if (uniqueIds.length === 0) {
+        showToast('❌ Δεν βρέθηκαν έγκυρα YouTube links στο κείμενο');
+        return;
+      }
+
+      document.getElementById('bulk-textarea').value = '';
+      toggleBulkBox(false);
+      showToast(`⏳ Εισαγωγή ${uniqueIds.length} τραγουδιών...`);
+
+      for (const id of uniqueIds) {
+        await addSingleVideoId(id);
+        saveQueueAndSyncPlaylist();
+        renderQueue();
+      }
+      showToast(`✅ Ολοκληρώθηκε η εισαγωγή ${uniqueIds.length} τραγουδιών!`);
+    }
+
     function handleMP3Files(files) {
       if (!files.length) return;
       Array.from(files).forEach(file => {
         const objectUrl = URL.createObjectURL(file);
         const cleanName = file.name.replace(/\.[^/.]+$/, "");
-        queue.push({ source: 'mp3', uri: file.name, title: cleanName, objectUrl, embedStatus: 'ok', played: false });
+        queue.push({
+          source: 'mp3',
+          uri: file.name,
+          title: cleanName,
+          objectUrl,
+          cueIn: 0,
+          cueOut: 0,
+          embedStatus: 'ok',
+          played: false
+        });
       });
       saveQueueAndSyncPlaylist();
       renderQueue();
@@ -1351,6 +1691,9 @@
           else if (item.embedStatus === 'blocked') statusBadge = '<span class="q-status-err">🔒 Κλειδωμένο</span>';
           else statusBadge = '<span class="q-status-chk">⏳ Έλεγχος...</span>';
         }
+        const cueBadge = (item.cueIn > 0 || item.cueOut > 0)
+          ? `<span class="q-cue-tag">✂️ ${item.cueIn > 0 ? formatTime(item.cueIn) : '00:00'}→${item.cueOut > 0 ? formatTime(item.cueOut) : 'End'}</span>`
+          : '';
         const playedBadge = item.played ? '<span class="q-status-played">✓ Έπαιξε</span>' : '';
         const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
@@ -1359,6 +1702,7 @@
             <div class="q-badges">
               <span class="q-tag">${idx + 1}. ${item.source === 'youtube' ? 'YT' : 'MP3'}</span>
               ${statusBadge}
+              ${cueBadge}
               ${playedBadge}
             </div>
             <span class="q-title">${item.title}</span>
@@ -1378,7 +1722,7 @@
       });
     }
 
-    // --- PLAYLIST STORAGE & ACTIVE SYNC ---
+    // --- PLAYLIST STORAGE & EXPORT / IMPORT ---
     function refreshPlaylistUI() {
       const sel = document.getElementById('saved-playlists');
       const label = document.getElementById('active-pl-label');
@@ -1461,6 +1805,80 @@
       renderQueue();
       refreshPlaylistUI();
       showToast(`🗑️ Διαγράφηκε: ${deletedName}`);
+    }
+
+    function exportPlaylists() {
+      const dataToExport = {
+        app: 'YT-MP3 Mobile DJ',
+        version: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        playlists: savedPlaylists,
+        draftQueue: getCleanQueueCopy()
+      };
+
+      const totalPlaylists = Object.keys(savedPlaylists).length;
+      if (totalPlaylists === 0 && dataToExport.draftQueue.length === 0) {
+        showToast('Δεν υπάρχουν playlists για εξαγωγή');
+        return;
+      }
+
+      const jsonStr = JSON.stringify(dataToExport, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `yt-mp3-dj-playlists-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast(`📤 Εξήχθησαν ${totalPlaylists} playlists`);
+    }
+
+    function importPlaylists(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const imported = parsed.playlists || parsed;
+          if (!imported || typeof imported !== 'object') {
+            throw new Error('Invalid format');
+          }
+
+          let addedCount = 0;
+          Object.keys(imported).forEach(name => {
+            if (!Array.isArray(imported[name])) return;
+            if (savedPlaylists[name]) {
+              const overwrite = confirm(`Η playlist "${name}" υπάρχει ήδη. Να αντικατασταθεί;\n(Άκυρο = θα αποθηκευτεί ως "${name} (Import)")`);
+              if (overwrite) {
+                savedPlaylists[name] = imported[name];
+              } else {
+                savedPlaylists[`${name} (Import)`] = imported[name];
+              }
+            } else {
+              savedPlaylists[name] = imported[name];
+            }
+            addedCount++;
+          });
+
+          if (addedCount === 0 && Array.isArray(parsed.draftQueue) && parsed.draftQueue.length > 0) {
+            savedPlaylists['Imported List'] = parsed.draftQueue;
+            addedCount = 1;
+          }
+
+          localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
+          refreshPlaylistUI();
+          showToast(`📥 Εισήχθησαν ${addedCount} playlists!`);
+        } catch (err) {
+          showToast('❌ Μη έγκυρο αρχείο backup (.json)');
+        }
+        document.getElementById('import-pl-picker').value = '';
+      };
+      reader.readAsText(file);
     }
 
     // Init
