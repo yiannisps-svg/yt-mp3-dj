@@ -4,6 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>YT-MP3 Mobile DJ</title>
+
+  <!-- PWA Fullscreen / Standalone Support (Single-file inline manifest) -->
+  <meta name="theme-color" content="#09090b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="YT-MP3 DJ" />
+  <link id="pwa-manifest" rel="manifest" />
+  <script>
+    (function () {
+      const iconSvg = "data:image/svg+xml," + encodeURIComponent(
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='#09090b'/><text x='50' y='68' font-size='56' text-anchor='middle'>🎧</text></svg>"
+      );
+      const manifest = {
+        name: "YT-MP3 Mobile DJ",
+        short_name: "YT-MP3 DJ",
+        start_url: window.location.href.split('?')[0],
+        display: "standalone",
+        background_color: "#09090b",
+        theme_color: "#09090b",
+        orientation: "portrait",
+        icons: [{ src: iconSvg, sizes: "192x192", type: "image/svg+xml" }]
+      };
+      const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+      document.getElementById("pwa-manifest").setAttribute("href", URL.createObjectURL(blob));
+    })();
+  </script>
+
   <style>
     :root {
       --font-scale: 1;
@@ -47,20 +75,21 @@
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 12px;
-      gap: 8px;
+      gap: 6px;
     }
 
     .logo {
       font-weight: 800;
-      font-size: 1.1em;
-      letter-spacing: 0.4px;
+      font-size: 1.05em;
+      letter-spacing: 0.3px;
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
     }
 
     .drive-pill {
-      font-size: 0.68em;
+      font-size: 0.66em;
       font-weight: 800;
       padding: 2px 7px;
       border-radius: 999px;
@@ -68,6 +97,7 @@
       border: 1px solid var(--border);
       color: var(--text-muted);
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .drive-pill.connected {
@@ -78,13 +108,14 @@
 
     .header-controls {
       display: flex;
-      gap: 6px;
+      gap: 5px;
+      flex-shrink: 0;
     }
 
     .header-controls button {
-      padding: 8px 10px;
-      font-size: 0.88em;
-      min-height: 40px;
+      padding: 7px 9px;
+      font-size: 0.85em;
+      min-height: 38px;
     }
 
     button {
@@ -1143,13 +1174,14 @@
 
   <header>
     <div class="logo">
-      <span>🎧 YT-MP3 DJ</span>
+      <span>🎧 YT-MP3</span>
       <span class="drive-pill" id="header-drive-pill" onclick="openSettings()" title="Κατάσταση Google Drive">☁️ Offline</span>
     </div>
     <div class="header-controls">
       <button onclick="changeFontScale(-0.15)" aria-label="Μικρότερα γράμματα">A-</button>
       <button onclick="changeFontScale(0.15)" aria-label="Μεγαλύτερα γράμματα">A+</button>
-      <button onclick="openSettings()" aria-label="Ρυθμίσεις">⚙️ Settings</button>
+      <button onclick="toggleFullScreen()" aria-label="Πλήρης οθόνη" title="Πλήρης οθόνη">⛶</button>
+      <button onclick="openSettings()" aria-label="Ρυθμίσεις">⚙️</button>
     </div>
   </header>
 
@@ -1163,11 +1195,6 @@
       <div id="yt-player-b"></div>
       <div id="overlay-b" class="overlay-badge"></div>
     </div>
-  </div>
-
-  <!-- Κρυφός Player για αθόρυβο έλεγχο φραγής -->
-  <div style="position:fixed; left:-9999px; width:200px; height:200px; pointer-events:none; opacity:0;">
-    <div id="yt-validator"></div>
   </div>
 
   <!-- DECK A -->
@@ -1325,13 +1352,26 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v2.1.0 • Search, History & Drive';
+    const APP_VERSION = 'v2.1.1 • PWA Fullscreen & API Check';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
       const url = new URL(window.location.href);
       url.searchParams.set('v', Date.now());
       window.location.href = url.toString();
+    }
+
+    function toggleFullScreen() {
+      const doc = window.document;
+      const docEl = doc.documentElement;
+      const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+      const exit = doc.exitFullscreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+      if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+        if (req) req.call(docEl).catch(() => showToast('💡 Για μόνιμο fullscreen: Μενού browser → Προσθήκη στην αρχική οθόνη'));
+      } else if (exit) {
+        exit.call(doc);
+      }
     }
 
     // --- API KEYS & GOOGLE DRIVE CONFIG ---
@@ -1535,6 +1575,7 @@
 
           renderQueue();
           refreshPlaylistUI();
+          scheduleBatchValidation();
           const nowStr = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
           updateDriveUI('Συνδεδεμένο (Synced)', true, `Τελευταίο Sync: ${nowStr}`);
           if (notify) showToast(`☁️ Συγχρονίστηκαν ${Object.keys(savedPlaylists).length} playlists & History!`);
@@ -1707,7 +1748,6 @@
       };
 
       if (existingIdx !== -1) {
-        // Keep best known title and cues, move to top
         if (!track.title || track.title.startsWith('YouTube Video (')) {
           entry.title = ytHistory[existingIdx].title;
         }
@@ -1789,7 +1829,6 @@
         let sRes = await fetch(searchUrl);
         let sData = await sRes.json();
 
-        // Fallback without category filter if needed
         if (!sData.items || sData.items.length === 0) {
           const broadUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
           sRes = await fetch(broadUrl);
@@ -1915,7 +1954,6 @@
       const optionsBox = document.getElementById('list-picker-options');
       optionsBox.innerHTML = '';
 
-      // 1. Current Active Queue / List
       const activeNameLabel = activePlaylistName
         ? `📂 Ενεργή Λίστα: ${activePlaylistName}`
         : '📝 Τρέχουσα Πρόχειρη Λίστα (Queue)';
@@ -1925,7 +1963,6 @@
       btnCurrent.onclick = () => addPendingTrackToTargetList('__CURRENT__');
       optionsBox.appendChild(btnCurrent);
 
-      // 2. All Other Saved Playlists
       Object.keys(savedPlaylists).forEach(plName => {
         if (plName === activePlaylistName) return;
         const btn = document.createElement('button');
@@ -1935,7 +1972,6 @@
         optionsBox.appendChild(btn);
       });
 
-      // 3. Create New Playlist on the spot
       const btnNew = document.createElement('button');
       btnNew.className = 'list-picker-item btn-drive';
       btnNew.innerHTML = `<span>➕ Δημιουργία Νέας Λίστας...</span><span>+</span>`;
@@ -2093,11 +2129,6 @@
     let isTransitioning = false;
     let crossfadeValue = 0;
     let wakeLock = null;
-
-    let validatorPlayer = null;
-    let validatorReady = false;
-    let validationQueue = [];
-    let currentValidatingItem = null;
 
     const decks = {
       A: {
@@ -2271,7 +2302,7 @@
       setTimeout(() => { d.isSeeking = false; }, 250);
     }
 
-    // --- YOUTUBE API & VALIDATOR SETUP ---
+    // --- YOUTUBE API & BATCH VALIDATOR SETUP ---
     function onYouTubeIframeAPIReady() {
       const origin = window.location.origin !== 'null' ? window.location.origin : undefined;
 
@@ -2295,64 +2326,51 @@
           }
         });
       });
-
-      validatorPlayer = new YT.Player('yt-validator', {
-        height: '200',
-        width: '200',
-        playerVars: { playsinline: 1, controls: 0, origin: origin },
-        events: {
-          onReady: () => {
-            validatorReady = true;
-            validatorPlayer.mute();
-            processNextValidation();
-          },
-          onStateChange: (e) => {
-            if (!currentValidatingItem) return;
-            if (e.data === YT.PlayerState.PLAYING) {
-              validatorPlayer.stopVideo();
-              finishValidation(true);
-            }
-          },
-          onError: () => {
-            if (currentValidatingItem) finishValidation(false);
-          }
-        }
-      });
     }
+
+    let apiValidationTimer = null;
 
     function enqueueValidation(item) {
       if (item.source !== 'youtube') return;
       item.embedStatus = 'checking';
-      validationQueue.push(item);
-      if (validatorReady && !currentValidatingItem) {
-        processNextValidation();
-      }
+      scheduleBatchValidation();
     }
 
-    function processNextValidation() {
-      if (!validatorReady || currentValidatingItem || validationQueue.length === 0) return;
-      currentValidatingItem = validationQueue.shift();
-      validatorPlayer.mute();
-      validatorPlayer.loadVideoById(currentValidatingItem.uri);
-
-      currentValidatingItem._timeout = setTimeout(() => {
-        if (currentValidatingItem) finishValidation(false);
-      }, 4500);
+    function scheduleBatchValidation() {
+      clearTimeout(apiValidationTimer);
+      apiValidationTimer = setTimeout(validatePendingYouTubeItems, 350);
     }
 
-    function finishValidation(isAllowed) {
-      if (!currentValidatingItem) return;
-      clearTimeout(currentValidatingItem._timeout);
-      delete currentValidatingItem._timeout;
+    async function validatePendingYouTubeItems() {
+      const pending = [
+        ...queue.filter(i => i.source === 'youtube' && (!i.embedStatus || i.embedStatus === 'checking')),
+        ...ytHistory.filter(i => i.source === 'youtube' && (!i.embedStatus || i.embedStatus === 'checking'))
+      ];
+      if (pending.length === 0) return;
 
-      currentValidatingItem.embedStatus = isAllowed ? 'ok' : 'blocked';
-      if (!isAllowed) {
-        showToast(`🔒 "${currentValidatingItem.title}" κλειδωμένο — πάτα "🔎 Βρες άλλο"`);
+      const uniqueIds = [...new Set(pending.map(i => i.uri))].slice(0, 50);
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/videos?part=status&id=${uniqueIds.join(',')}&key=${YOUTUBE_API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const statusMap = {};
+        (data.items || []).forEach(v => {
+          statusMap[v.id] = (v.status && v.status.embeddable !== false) ? 'ok' : 'blocked';
+        });
+
+        pending.forEach(item => {
+          item.embedStatus = statusMap[item.uri] || 'blocked';
+        });
+      } catch (e) {
+        // Fallback if API fails: mark as ok so items don't stay stuck
+        pending.forEach(item => { item.embedStatus = 'ok'; });
       }
-      currentValidatingItem = null;
+
+      localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
       saveQueueAndSyncPlaylist();
       renderQueue();
-      processNextValidation();
     }
 
     function onYTStateChange(id, event) {
@@ -2362,6 +2380,18 @@
       if (event.data === YT.PlayerState.PLAYING) {
         d.playing = true;
         document.getElementById(`alt-${id.toLowerCase()}`).style.display = 'none';
+        if (d.track && d.track.embedStatus !== 'ok') {
+          d.track.embedStatus = 'ok';
+          const inQ = queue.find(q => q.uri === d.track.uri && q.source === 'youtube');
+          if (inQ) inQ.embedStatus = 'ok';
+          const inH = ytHistory.find(h => h.uri === d.track.uri && h.source === 'youtube');
+          if (inH) {
+            inH.embedStatus = 'ok';
+            localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
+          }
+          saveQueueAndSyncPlaylist();
+          renderQueue();
+        }
         if (!d.appliedCueIn && d.track && d.track.cueIn > 0) {
           d.appliedCueIn = true;
           d.ytPlayer.seekTo(d.track.cueIn, true);
@@ -3064,14 +3094,12 @@
         queue = [];
       } else if (savedPlaylists[name]) {
         queue = JSON.parse(JSON.stringify(savedPlaylists[name])).map(item => ({ ...item, played: false }));
-        queue.forEach(item => {
-          if (item.source === 'youtube' && !item.embedStatus) enqueueValidation(item);
-        });
       }
 
       localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
       renderQueue();
       refreshPlaylistUI();
+      scheduleBatchValidation();
       showToast(name ? `📂 Φορτώθηκε: ${name}` : '📝 Νέα πρόχειρη λίστα');
     }
 
@@ -3183,9 +3211,7 @@
     }
     renderQueue();
     refreshPlaylistUI();
-    queue.forEach(item => {
-      if (item.source === 'youtube' && item.embedStatus === 'checking') enqueueValidation(item);
-    });
+    scheduleBatchValidation();
   </script>
 </body>
 </html>
