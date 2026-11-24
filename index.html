@@ -15,6 +15,7 @@
       --accent-a: #3b82f6;
       --accent-b: #f59e0b;
       --accent-auto: #10b981;
+      --accent-drive: #38bdf8;
       --danger: #ef4444;
       --border: #3f3f46;
     }
@@ -50,8 +51,28 @@
 
     .logo {
       font-weight: 800;
-      font-size: 1.15em;
-      letter-spacing: 0.5px;
+      font-size: 1.1em;
+      letter-spacing: 0.4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drive-pill {
+      font-size: 0.68em;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .drive-pill.connected {
+      background: #0c4a6e;
+      border-color: var(--accent-drive);
+      color: #bae6fd;
     }
 
     .header-controls {
@@ -464,6 +485,28 @@
       gap: 8px;
     }
 
+    .drive-info-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.85em;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .drive-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-drive {
+      background: #0c4a6e;
+      border-color: var(--accent-drive);
+      color: #e0f2fe;
+    }
+
     /* PIN Lock Screen Overlay */
     .lock-screen {
       position: fixed;
@@ -617,13 +660,13 @@
 
     .quick-btns {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1.15fr;
       gap: 6px;
     }
 
     .quick-btns button {
-      padding: 8px 6px;
-      font-size: 0.85em;
+      padding: 8px 4px;
+      font-size: 0.8em;
     }
 
     /* Bulk Import Modal Box */
@@ -721,6 +764,11 @@
       padding: 2px 6px;
       border-radius: 4px;
       background: var(--bg-input);
+    }
+
+    .q-tag.drive-tag {
+      background: #0c4a6e;
+      color: #bae6fd;
     }
 
     .q-cue-tag {
@@ -853,6 +901,7 @@
         <button onclick="closeSettings()" style="min-height:36px; padding:6px 10px;">✕</button>
       </div>
 
+      <!-- 1. Auto-DJ -->
       <div class="modal-section">
         <div class="modal-section-title">1. Χρονισμός Auto-DJ</div>
         <div class="autodj-settings">
@@ -873,6 +922,7 @@
         </div>
       </div>
 
+      <!-- 2. PIN Lock -->
       <div class="modal-section">
         <div class="modal-section-title">2. PIN Κατά το Άνοιγμα</div>
         <div class="pin-status-row">
@@ -889,12 +939,30 @@
         </div>
       </div>
 
+      <!-- 3. Google Drive Sync -->
+      <div class="modal-section">
+        <div class="modal-section-title">3. Google Drive Cloud Sync</div>
+        <div class="drive-info-box">
+          <div>Κατάσταση: <strong id="drive-status-text" style="color:var(--text-muted);">Αποσυνδεδεμένο</strong></div>
+          <div id="drive-last-sync" style="font-size:0.85em; color:var(--text-muted); margin-top:2px;">Φάκελος Drive: YT-MP3-DJ-Data</div>
+        </div>
+        <div class="drive-actions-grid">
+          <button class="btn-drive" id="btn-drive-connect" onclick="connectGoogleDrive()">☁️ Σύνδεση Drive</button>
+          <button id="btn-drive-sync-now" onclick="manualDrivePull()" style="display:none;">🔄 Sync Τώρα</button>
+          <button class="btn-save-active" id="btn-drive-push-now" onclick="pushPlaylistsToDrive(true)" style="display:none;">⬆️ Ανέβασμα Λιστών</button>
+          <button class="btn-del" id="btn-drive-disconnect" onclick="disconnectGoogleDrive()" style="display:none;">Αποσύνδεση</button>
+        </div>
+      </div>
+
       <button onclick="closeSettings()" style="width:100%;">Κλείσιμο Settings</button>
     </div>
   </div>
 
   <header>
-    <div class="logo">🎧 YT-MP3 DJ</div>
+    <div class="logo">
+      <span>🎧 YT-MP3 DJ</span>
+      <span class="drive-pill" id="header-drive-pill" onclick="openSettings()" title="Κατάσταση Google Drive">☁️ Offline</span>
+    </div>
     <div class="header-controls">
       <button onclick="changeFontScale(-0.15)" aria-label="Μικρότερα γράμματα">A-</button>
       <button onclick="changeFontScale(0.15)" aria-label="Μεγαλύτερα γράμματα">A+</button>
@@ -995,6 +1063,7 @@
       <button onclick="smartPaste()">📋 Paste</button>
       <button onclick="toggleBulkBox()">📥 Μαζικά</button>
       <button onclick="document.getElementById('mp3-picker').click()">📁 + MP3</button>
+      <button class="btn-drive" onclick="importDriveMP3s()">☁️ Drive MP3</button>
       <input type="file" id="mp3-picker" accept="audio/*" multiple style="display:none" onchange="handleMP3Files(this.files)" />
     </div>
 
@@ -1050,16 +1119,358 @@
   <div class="status-toast" id="toast"></div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v1.9.0 • Settings & PIN';
+    const APP_VERSION = 'v2.0.0 • Google Drive Sync';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
       const url = new URL(window.location.href);
       url.searchParams.set('v', Date.now());
       window.location.href = url.toString();
+    }
+
+    // --- GOOGLE DRIVE SYNC CONFIGURATION ---
+    const GOOGLE_CLIENT_ID = '637763284459-o9vgp64ueooghik1gpsvgqrni18ed262.apps.googleusercontent.com';
+    const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    const DRIVE_FOLDER_NAME = 'YT-MP3-DJ-Data';
+    const DRIVE_SYNC_FILENAME = 'yt-mp3-dj-sync.json';
+
+    let tokenClient = null;
+    let driveAccessToken = null;
+    let driveFolderId = localStorage.getItem('dj_drive_folder_id') || null;
+    let driveSyncFileId = localStorage.getItem('dj_drive_sync_file_id') || null;
+    let driveAutoEnabled = localStorage.getItem('dj_drive_enabled') === '1';
+    let driveSyncDebounce = null;
+    const driveBlobCache = {}; // fileId -> objectUrl
+
+    function updateDriveUI(statusText, isConnected = false, subText = null) {
+      const pill = document.getElementById('header-drive-pill');
+      const statusEl = document.getElementById('drive-status-text');
+      const subEl = document.getElementById('drive-last-sync');
+      const btnConnect = document.getElementById('btn-drive-connect');
+      const btnSyncNow = document.getElementById('btn-drive-sync-now');
+      const btnPushNow = document.getElementById('btn-drive-push-now');
+      const btnDisconnect = document.getElementById('btn-drive-disconnect');
+
+      if (isConnected) {
+        pill.textContent = '☁️ Synced';
+        pill.classList.add('connected');
+        statusEl.textContent = statusText || 'Συνδεδεμένο';
+        statusEl.style.color = 'var(--accent-auto)';
+        btnConnect.textContent = '🔑 Ανανέωση Token';
+        btnSyncNow.style.display = 'inline-flex';
+        btnPushNow.style.display = 'inline-flex';
+        btnDisconnect.style.display = 'inline-flex';
+      } else {
+        pill.textContent = '☁️ Offline';
+        pill.classList.remove('connected');
+        statusEl.textContent = statusText || 'Αποσυνδεδεμένο';
+        statusEl.style.color = 'var(--text-muted)';
+        btnConnect.textContent = '☁️ Σύνδεση Drive';
+        btnSyncNow.style.display = 'none';
+        btnPushNow.style.display = 'none';
+        btnDisconnect.style.display = 'none';
+      }
+
+      if (subText) subEl.textContent = subText;
+    }
+
+    function initGoogleTokenClient() {
+      if (tokenClient || !window.google || !google.accounts || !google.accounts.oauth2) return false;
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: DRIVE_SCOPES,
+        callback: async (resp) => {
+          if (resp.error) {
+            updateDriveUI('Σφάλμα σύνδεσης', false);
+            showToast('❌ Αποτυχία σύνδεσης Google Drive');
+            return;
+          }
+          driveAccessToken = resp.access_token;
+          driveAutoEnabled = true;
+          localStorage.setItem('dj_drive_enabled', '1');
+          updateDriveUI('Συνδεδεμένο (Ενεργό)', true, 'Αναζήτηση φακέλου YT-MP3-DJ-Data...');
+          await setupDriveStorageAndSync();
+        }
+      });
+      return true;
+    }
+
+    function connectGoogleDrive(silent = false) {
+      if (!initGoogleTokenClient()) {
+        showToast('⏳ Φόρτωση Google API, δοκίμασε ξανά σε 1 δευτερόλεπτο');
+        return;
+      }
+      tokenClient.requestAccessToken({ prompt: silent ? '' : 'consent' });
+    }
+
+    function disconnectGoogleDrive() {
+      if (driveAccessToken && window.google && google.accounts) {
+        try { google.accounts.oauth2.revoke(driveAccessToken); } catch (e) {}
+      }
+      driveAccessToken = null;
+      driveAutoEnabled = false;
+      localStorage.removeItem('dj_drive_enabled');
+      updateDriveUI('Αποσυνδεδεμένο', false, 'Φάκελος Drive: YT-MP3-DJ-Data');
+      showToast('☁️ Αποσυνδέθηκε από το Google Drive');
+    }
+
+    async function driveFetch(url, options = {}) {
+      if (!driveAccessToken) throw new Error('NO_TOKEN');
+      const headers = new Headers(options.headers || {});
+      headers.set('Authorization', `Bearer ${driveAccessToken}`);
+      const res = await fetch(url, { ...options, headers });
+      if (res.status === 401) {
+        driveAccessToken = null;
+        updateDriveUI('Έληξε η συνεδρία — Πάτα Σύνδεση', false);
+        throw new Error('TOKEN_EXPIRED');
+      }
+      return res;
+    }
+
+    async function ensureDriveFolder() {
+      if (driveFolderId) {
+        const chk = await driveFetch(`https://www.googleapis.com/drive/v3/files/${driveFolderId}?fields=id,trashed`);
+        if (chk.ok) {
+          const meta = await chk.json();
+          if (!meta.trashed) return driveFolderId;
+        }
+        driveFolderId = null;
+      }
+
+      const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+      const searchRes = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`);
+      const searchData = await searchRes.json();
+
+      if (searchData.files && searchData.files.length > 0) {
+        driveFolderId = searchData.files[0].id;
+      } else {
+        const createRes = await driveFetch('https://www.googleapis.com/drive/v3/files', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: DRIVE_FOLDER_NAME,
+            mimeType: 'application/vnd.google-apps.folder'
+          })
+        });
+        const created = await createRes.json();
+        driveFolderId = created.id;
+      }
+
+      localStorage.setItem('dj_drive_folder_id', driveFolderId);
+      return driveFolderId;
+    }
+
+    async function findSyncJsonFile(folderId) {
+      const q = encodeURIComponent(`name='${DRIVE_SYNC_FILENAME}' and '${folderId}' in parents and trashed=false`);
+      const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`);
+      const data = await res.json();
+      if (data.files && data.files.length > 0) {
+        driveSyncFileId = data.files[0].id;
+        localStorage.setItem('dj_drive_sync_file_id', driveSyncFileId);
+        return data.files[0];
+      }
+      driveSyncFileId = null;
+      localStorage.removeItem('dj_drive_sync_file_id');
+      return null;
+    }
+
+    async function setupDriveStorageAndSync() {
+      try {
+        const folderId = await ensureDriveFolder();
+        const remoteFile = await findSyncJsonFile(folderId);
+
+        if (remoteFile) {
+          await pullPlaylistsFromDrive(false);
+        } else {
+          await pushPlaylistsToDrive(false);
+          showToast('☁️ Δημιουργήθηκε ο φάκελος YT-MP3-DJ-Data & συγχρονίστηκαν οι λίστες!');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('⚠️ Σφάλμα κατά τον αρχικό συγχρονισμό Drive');
+      }
+    }
+
+    async function pullPlaylistsFromDrive(notify = true) {
+      if (!driveAccessToken) {
+        connectGoogleDrive(false);
+        return;
+      }
+      try {
+        const folderId = await ensureDriveFolder();
+        const remoteFile = await findSyncJsonFile(folderId);
+        if (!remoteFile) {
+          if (notify) showToast('Δεν βρέθηκε αρχείο sync στο Drive — γίνεται ανέβασμα...');
+          await pushPlaylistsToDrive(notify);
+          return;
+        }
+
+        const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${remoteFile.id}?alt=media`);
+        if (!res.ok) throw new Error('Download failed');
+        const cloudData = await res.json();
+
+        if (cloudData && typeof cloudData.playlists === 'object') {
+          savedPlaylists = cloudData.playlists;
+          localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
+
+          if (activePlaylistName && savedPlaylists[activePlaylistName]) {
+            queue = JSON.parse(JSON.stringify(savedPlaylists[activePlaylistName])).map(item => ({ ...item, played: false }));
+            localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
+            renderQueue();
+          } else if (!activePlaylistName && Array.isArray(cloudData.draftQueue) && queue.length === 0) {
+            queue = cloudData.draftQueue.map(item => ({ ...item, played: false }));
+            localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
+            renderQueue();
+          }
+
+          refreshPlaylistUI();
+          const nowStr = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
+          updateDriveUI('Συνδεδεμένο (Synced)', true, `Τελευταίο Sync: ${nowStr}`);
+          if (notify) showToast(`☁️ Συγχρονίστηκαν ${Object.keys(savedPlaylists).length} playlists από το Drive!`);
+        }
+      } catch (err) {
+        if (err.message !== 'TOKEN_EXPIRED') showToast('❌ Αποτυχία ανάγνωσης από το Drive');
+      }
+    }
+
+    function manualDrivePull() {
+      pullPlaylistsFromDrive(true);
+    }
+
+    function scheduleDrivePush() {
+      if (!driveAccessToken) return;
+      document.getElementById('header-drive-pill').textContent = '☁️ Saving...';
+      clearTimeout(driveSyncDebounce);
+      driveSyncDebounce = setTimeout(() => {
+        pushPlaylistsToDrive(false);
+      }, 1500);
+    }
+
+    async function pushPlaylistsToDrive(notify = false) {
+      if (!driveAccessToken) return;
+      try {
+        const folderId = await ensureDriveFolder();
+        const payload = JSON.stringify({
+          app: 'YT-MP3 Mobile DJ',
+          version: APP_VERSION,
+          updatedAt: new Date().toISOString(),
+          playlists: savedPlaylists,
+          draftQueue: getCleanQueueCopy()
+        }, null, 2);
+
+        const metadata = {
+          name: DRIVE_SYNC_FILENAME,
+          mimeType: 'application/json'
+        };
+        if (!driveSyncFileId) metadata.parents = [folderId];
+
+        const boundary = '-------ytmp3djboundary314159';
+        const delimiter = `\r\n--${boundary}\r\n`;
+        const closeDelim = `\r\n--${boundary}--`;
+
+        const multipartBody =
+          delimiter +
+          'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+          JSON.stringify(metadata) +
+          delimiter +
+          'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+          payload +
+          closeDelim;
+
+        const uploadUrl = driveSyncFileId
+          ? `https://www.googleapis.com/upload/drive/v3/files/${driveSyncFileId}?uploadType=multipart`
+          : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+
+        const res = await driveFetch(uploadUrl, {
+          method: driveSyncFileId ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+          body: multipartBody
+        });
+
+        if (!res.ok) throw new Error('Upload failed');
+        const savedMeta = await res.json();
+        driveSyncFileId = savedMeta.id;
+        localStorage.setItem('dj_drive_sync_file_id', driveSyncFileId);
+
+        const nowStr = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
+        updateDriveUI('Συνδεδεμένο (Synced)', true, `Αποθηκεύτηκε στο Drive: ${nowStr}`);
+        if (notify) showToast('☁️ Οι playlists ανέβηκαν στο Google Drive!');
+      } catch (err) {
+        if (err.message !== 'TOKEN_EXPIRED') {
+          updateDriveUI('Σφάλμα αποθήκευσης', true);
+          if (notify) showToast('❌ Αποτυχία αποθήκευσης στο Drive');
+        }
+      }
+    }
+
+    async function importDriveMP3s() {
+      if (!driveAccessToken) {
+        showToast('🔐 Συνδέσου πρώτα στο Google Drive...');
+        connectGoogleDrive(false);
+        return;
+      }
+
+      try {
+        showToast('☁️ Αναζήτηση MP3 στον φάκελο YT-MP3-DJ-Data...');
+        const folderId = await ensureDriveFolder();
+        const q = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'audio/' and trashed=false`);
+        const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,size)&orderBy=name`);
+        const data = await res.json();
+
+        if (!data.files || data.files.length === 0) {
+          showToast('📂 Ο φάκελος YT-MP3-DJ-Data στο Drive δεν έχει ακόμα αρχεία ήχου');
+          return;
+        }
+
+        const existingDriveIds = new Set(queue.filter(i => i.source === 'drive_mp3').map(i => i.uri));
+        let added = 0;
+
+        data.files.forEach(file => {
+          if (existingDriveIds.has(file.id)) return;
+          const cleanName = file.name.replace(/\.[^/.]+$/, '');
+          queue.push({
+            source: 'drive_mp3',
+            uri: file.id,
+            title: cleanName,
+            cueIn: 0,
+            cueOut: 0,
+            embedStatus: 'ok',
+            played: false
+          });
+          added++;
+        });
+
+        if (added === 0) {
+          showToast(`✅ Όλα τα (${data.files.length}) Drive MP3 βρίσκονται ήδη στη λίστα`);
+        } else {
+          saveQueueAndSyncPlaylist();
+          renderQueue();
+          showToast(`☁️ Προστέθηκαν ${added} MP3 από το Google Drive!`);
+        }
+      } catch (err) {
+        if (err.message !== 'TOKEN_EXPIRED') showToast('❌ Σφάλμα ανάγνωσης MP3 από το Drive');
+      }
+    }
+
+    async function fetchDriveAudioBlobUrl(fileId, title) {
+      if (driveBlobCache[fileId]) return driveBlobCache[fileId];
+      if (!driveAccessToken) {
+        showToast('🔐 Απαιτείται σύνδεση στο Google Drive για αναπαραγωγή');
+        connectGoogleDrive(false);
+        return null;
+      }
+
+      showToast(`⏳ Λήψη από Drive: ${title}...`);
+      const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+      if (!res.ok) throw new Error('Failed to fetch audio stream');
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      driveBlobCache[fileId] = objUrl;
+      return objUrl;
     }
 
     // --- STATE ---
@@ -1331,7 +1742,7 @@
         d.appliedCueIn = true;
         if (d.source === 'youtube' && d.ytReady && d.ytPlayer.seekTo) {
           d.ytPlayer.seekTo(targetSec, true);
-        } else if (d.source === 'mp3') {
+        } else if (d.source === 'mp3' || d.source === 'drive_mp3') {
           d.audioEl.currentTime = targetSec;
         }
       }
@@ -1484,7 +1895,7 @@
     });
 
     // --- DECK LOADING & TRANSPORT ---
-    function loadTrackToDeck(id, track, autoPlay = false) {
+    async function loadTrackToDeck(id, track, autoPlay = false) {
       const d = decks[id];
       stopDeck(id);
       d.track = track;
@@ -1524,7 +1935,22 @@
           }
           if (autoPlay) d.audioEl.play().catch(() => showToast('Πάτα Play για εκκίνηση ήχου'));
         } else {
-          showToast('⚠️ Ξαναεπίλεξε το MP3 αρχείο από τη συσκευή');
+          showToast('⚠️ Ξαναεπίλεξε το τοπικό MP3 από τη συσκευή');
+        }
+      } else if (track.source === 'drive_mp3') {
+        overlay.style.display = 'flex';
+        overlay.textContent = `☁️ Drive MP3: ${track.title}`;
+        try {
+          const blobUrl = await fetchDriveAudioBlobUrl(track.uri, track.title);
+          if (!blobUrl || d.track !== track) return;
+          d.audioEl.src = blobUrl;
+          if (track.cueIn > 0) {
+            d.audioEl.currentTime = track.cueIn;
+            d.appliedCueIn = true;
+          }
+          if (autoPlay) d.audioEl.play().catch(() => showToast('Πάτα Play για εκκίνηση ήχου'));
+        } catch (err) {
+          showToast('❌ Αδυναμία φόρτωσης MP3 από Google Drive');
         }
       }
       updateAudioVolumes();
@@ -1554,7 +1980,7 @@
       if (d.source === 'youtube' && d.ytReady) {
         if (d.playing) d.ytPlayer.pauseVideo();
         else d.ytPlayer.playVideo();
-      } else if (d.source === 'mp3') {
+      } else if (d.source === 'mp3' || d.source === 'drive_mp3') {
         if (d.playing) d.audioEl.pause();
         else d.audioEl.play();
       }
@@ -1680,7 +2106,7 @@
         if (d.source === 'youtube' && d.ytReady && d.ytPlayer.getCurrentTime) {
           cur = d.ytPlayer.getCurrentTime() || 0;
           dur = d.ytPlayer.getDuration() || 0;
-        } else if (d.source === 'mp3') {
+        } else if (d.source === 'mp3' || d.source === 'drive_mp3') {
           cur = d.audioEl.currentTime || 0;
           dur = d.audioEl.duration || 0;
         }
@@ -1952,6 +2378,7 @@
         localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
         refreshPlaylistUI();
       }
+      scheduleDrivePush();
     }
 
     function renderQueue() {
@@ -1976,10 +2403,14 @@
         const playedBadge = item.played ? '<span class="q-status-played">✓ Έπαιξε</span>' : '';
         const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
+        let sourceTagHtml = `<span class="q-tag">${idx + 1}. MP3</span>`;
+        if (item.source === 'youtube') sourceTagHtml = `<span class="q-tag">${idx + 1}. YT</span>`;
+        else if (item.source === 'drive_mp3') sourceTagHtml = `<span class="q-tag drive-tag">${idx + 1}. ☁️ MP3</span>`;
+
         li.innerHTML = `
           <div class="q-info">
             <div class="q-badges">
-              <span class="q-tag">${idx + 1}. ${item.source === 'youtube' ? 'YT' : 'MP3'}</span>
+              ${sourceTagHtml}
               ${statusBadge}
               ${cueBadge}
               ${playedBadge}
@@ -2041,6 +2472,7 @@
       localStorage.setItem('dj_active_pl_name', activePlaylistName);
 
       refreshPlaylistUI();
+      scheduleDrivePush();
       showToast(`✅ Δημιουργήθηκε: "${cleanName}" — Ό,τι προσθέτεις μπαίνει εδώ!`);
     }
 
@@ -2049,6 +2481,7 @@
       savedPlaylists[activePlaylistName] = getCleanQueueCopy();
       localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
       refreshPlaylistUI();
+      scheduleDrivePush();
       showToast(`💾 Η λίστα "${activePlaylistName}" ενημερώθηκε!`);
     }
 
@@ -2083,6 +2516,7 @@
       localStorage.setItem('dj_active_queue', '[]');
       renderQueue();
       refreshPlaylistUI();
+      scheduleDrivePush();
       showToast(`🗑️ Διαγράφηκε: ${deletedName}`);
     }
 
@@ -2151,6 +2585,7 @@
 
           localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
           refreshPlaylistUI();
+          scheduleDrivePush();
           showToast(`📥 Εισήχθησαν ${addedCount} playlists!`);
         } catch (err) {
           showToast('❌ Μη έγκυρο αρχείο backup (.json)');
