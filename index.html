@@ -16,6 +16,7 @@
       --accent-b: #f59e0b;
       --accent-auto: #10b981;
       --accent-drive: #38bdf8;
+      --accent-hist: #a855f7;
       --danger: #ef4444;
       --border: #3f3f46;
     }
@@ -341,7 +342,7 @@
       border-color: var(--accent-auto);
     }
 
-    /* Settings Modal */
+    /* Modals */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -507,6 +508,15 @@
       color: #e0f2fe;
     }
 
+    /* Add-to-List Picker Modal Items */
+    .list-picker-item {
+      width: 100%;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      text-align: left;
+      padding: 12px 14px;
+    }
+
     /* PIN Lock Screen Overlay */
     .lock-screen {
       position: fixed;
@@ -605,9 +615,32 @@
     }
 
     .playlist-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .playlist-btns button {
+      flex: 1;
+      min-width: 90px;
+      padding: 8px 8px;
+      font-size: 0.85em;
+    }
+
+    .playlist-btns button.btn-del {
+      flex: 0 0 auto;
+      min-width: 44px;
+    }
+
+    .btn-history {
+      background: #3b0764;
+      border-color: var(--accent-hist);
+      color: #f3e8ff;
+    }
+
+    .btn-history.active {
+      background: var(--accent-hist);
+      color: #ffffff;
     }
 
     .playlist-backup-row {
@@ -632,7 +665,7 @@
       color: #a7f3d0;
     }
 
-    /* Input & Queue */
+    /* Search & Add Box */
     .add-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -667,6 +700,139 @@
     .quick-btns button {
       padding: 8px 4px;
       font-size: 0.8em;
+    }
+
+    /* YouTube In-App Search Results */
+    .yt-search-results {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .search-res-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82em;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .search-res-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .sr-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sr-top {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .sr-thumb {
+      width: 96px;
+      height: 54px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .sr-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sr-title {
+      font-size: 0.88em;
+      font-weight: 700;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .sr-channel {
+      font-size: 0.74em;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .sr-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .sr-badge {
+      font-size: 0.68em;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: #e4e4e7;
+    }
+
+    .sr-badge.hd {
+      background: #0c4a6e;
+      border-color: var(--accent-drive);
+      color: #bae6fd;
+    }
+
+    .sr-badge.ok {
+      background: #064e3b;
+      border-color: var(--accent-auto);
+      color: #a7f3d0;
+    }
+
+    .sr-badge.blocked {
+      background: #450a0a;
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    .sr-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.45fr;
+      gap: 6px;
+    }
+
+    .sr-actions button {
+      min-height: 36px;
+      padding: 6px 8px;
+      font-size: 0.8em;
+    }
+
+    .btn-deck-a {
+      border-color: var(--accent-a);
+      color: #93c5fd;
+    }
+
+    .btn-deck-b {
+      border-color: var(--accent-b);
+      color: #fcd34d;
     }
 
     /* Bulk Import Modal Box */
@@ -744,6 +910,10 @@
     .queue-item.played-item {
       opacity: 0.55;
       border-style: dashed;
+    }
+
+    .queue-item.history-item {
+      border-left: 4px solid var(--accent-hist);
     }
 
     .q-info {
@@ -890,6 +1060,19 @@
       <input type="password" inputmode="numeric" id="pin-unlock-input" maxlength="10" placeholder="••••"
         onkeydown="if(event.key==='Enter') unlockWithPin()" />
       <button class="btn-save-active" onclick="unlockWithPin()">🔓 Ξεκλείδωμα</button>
+    </div>
+  </div>
+
+  <!-- Add-to-List Selection Modal -->
+  <div class="modal-backdrop" id="list-picker-modal" onclick="if(event.target===this) closeListPicker()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>➕ Προσθήκη σε Λίστα</span>
+        <button onclick="closeListPicker()" style="min-height:36px; padding:6px 10px;">✕</button>
+      </div>
+      <div id="list-picker-track-title" style="font-size:0.88em; color:var(--accent-auto); font-weight:700; margin-bottom:12px;"></div>
+      <div id="list-picker-options"></div>
+      <button onclick="closeListPicker()" style="width:100%; margin-top:6px;">Άκυρο</button>
     </div>
   </div>
 
@@ -1053,10 +1236,28 @@
     </div>
   </div>
 
-  <!-- ADD TRACKS -->
+  <!-- SEARCH & ADD TRACKS -->
   <div class="add-box">
+    <!-- In-App YouTube Search -->
     <div class="input-row">
-      <input type="text" id="yt-url-input" placeholder="YouTube video ή playlist link..." />
+      <input type="text" id="yt-search-input" placeholder="🔍 Αναζήτηση τραγουδιού στο YouTube..."
+        onkeydown="if(event.key==='Enter') searchYouTubeInApp()" />
+      <button class="btn-drive" onclick="searchYouTubeInApp()">🔍 Αναζήτηση</button>
+    </div>
+
+    <!-- Search Results Panel -->
+    <div class="yt-search-results" id="yt-search-results">
+      <div class="search-res-header">
+        <span id="search-res-label">ΑΠΟΤΕΛΕΣΜΑΤΑ ΑΝΑΖΗΤΗΣΗΣ</span>
+        <button onclick="closeSearchResults()" style="min-height:30px; padding:2px 8px; font-size:0.8em;">✕ Κλείσιμο</button>
+      </div>
+      <div class="search-res-list" id="search-res-list"></div>
+    </div>
+
+    <!-- URL / Paste / MP3 -->
+    <div class="input-row" style="margin-top:8px;">
+      <input type="text" id="yt-url-input" placeholder="YouTube video ή playlist link..."
+        onkeydown="if(event.key==='Enter') addYouTubeFromInput()" />
       <button onclick="addYouTubeFromInput()">+ Προσθήκη</button>
     </div>
     <div class="quick-btns">
@@ -1091,6 +1292,7 @@
     <div class="playlist-btns">
       <button class="btn-save-active" id="btn-update-pl" onclick="updateActivePlaylist()" style="display:none;">💾 Ενημέρωση</button>
       <button onclick="createNewPlaylist()">➕ Νέα Λίστα</button>
+      <button class="btn-history" id="btn-history-toggle" onclick="toggleHistoryView()">📜 History</button>
       <button class="btn-del" id="btn-del-pl" onclick="deleteSavedPlaylist()" style="display:none;">🗑️</button>
     </div>
     <div class="playlist-backup-row">
@@ -1100,12 +1302,12 @@
     </div>
   </div>
 
-  <!-- QUEUE LIST -->
+  <!-- QUEUE / HISTORY LIST -->
   <div class="section-header">
-    <span>ΚΟΜΜΑΤΙΑ (<span id="q-count">0</span>)</span>
+    <span id="list-section-title">ΚΟΜΜΑΤΙΑ (<span id="q-count">0</span>)</span>
     <div class="header-mini-btns">
-      <button onclick="resetPlayedMarks()" title="Επαναφορά παιγμένων">🔄 Reset</button>
-      <button onclick="clearQueue()">Καθαρισμός</button>
+      <button id="btn-reset-played" onclick="resetPlayedMarks()" title="Επαναφορά παιγμένων">🔄 Reset</button>
+      <button onclick="clearCurrentList()">Καθαρισμός</button>
     </div>
   </div>
   <ul class="queue-list" id="queue-list"></ul>
@@ -1123,7 +1325,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v2.0.0 • Google Drive Sync';
+    const APP_VERSION = 'v2.1.0 • Search, History & Drive';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
@@ -1132,9 +1334,10 @@
       window.location.href = url.toString();
     }
 
-    // --- GOOGLE DRIVE SYNC CONFIGURATION ---
+    // --- API KEYS & GOOGLE DRIVE CONFIG ---
+    const YOUTUBE_API_KEY = 'AIzaSyAWXpdEP3tWZ2-QXrr8c2Gg5UoQw2tBfMo';
     const GOOGLE_CLIENT_ID = '637763284459-o9vgp64ueooghik1gpsvgqrni18ed262.apps.googleusercontent.com';
-    const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
     const DRIVE_FOLDER_NAME = 'YT-MP3-DJ-Data';
     const DRIVE_SYNC_FILENAME = 'yt-mp3-dj-sync.json';
 
@@ -1144,7 +1347,7 @@
     let driveSyncFileId = localStorage.getItem('dj_drive_sync_file_id') || null;
     let driveAutoEnabled = localStorage.getItem('dj_drive_enabled') === '1';
     let driveSyncDebounce = null;
-    const driveBlobCache = {}; // fileId -> objectUrl
+    const driveBlobCache = {};
 
     function updateDriveUI(statusText, isConnected = false, subText = null) {
       const pill = document.getElementById('header-drive-pill');
@@ -1317,20 +1520,24 @@
           savedPlaylists = cloudData.playlists;
           localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
 
+          if (Array.isArray(cloudData.history)) {
+            ytHistory = cloudData.history;
+            localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
+          }
+
           if (activePlaylistName && savedPlaylists[activePlaylistName]) {
             queue = JSON.parse(JSON.stringify(savedPlaylists[activePlaylistName])).map(item => ({ ...item, played: false }));
             localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
-            renderQueue();
           } else if (!activePlaylistName && Array.isArray(cloudData.draftQueue) && queue.length === 0) {
             queue = cloudData.draftQueue.map(item => ({ ...item, played: false }));
             localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
-            renderQueue();
           }
 
+          renderQueue();
           refreshPlaylistUI();
           const nowStr = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
           updateDriveUI('Συνδεδεμένο (Synced)', true, `Τελευταίο Sync: ${nowStr}`);
-          if (notify) showToast(`☁️ Συγχρονίστηκαν ${Object.keys(savedPlaylists).length} playlists από το Drive!`);
+          if (notify) showToast(`☁️ Συγχρονίστηκαν ${Object.keys(savedPlaylists).length} playlists & History!`);
         }
       } catch (err) {
         if (err.message !== 'TOKEN_EXPIRED') showToast('❌ Αποτυχία ανάγνωσης από το Drive');
@@ -1359,7 +1566,8 @@
           version: APP_VERSION,
           updatedAt: new Date().toISOString(),
           playlists: savedPlaylists,
-          draftQueue: getCleanQueueCopy()
+          draftQueue: getCleanQueueCopy(),
+          history: ytHistory
         }, null, 2);
 
         const metadata = {
@@ -1398,7 +1606,7 @@
 
         const nowStr = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' });
         updateDriveUI('Συνδεδεμένο (Synced)', true, `Αποθηκεύτηκε στο Drive: ${nowStr}`);
-        if (notify) showToast('☁️ Οι playlists ανέβηκαν στο Google Drive!');
+        if (notify) showToast('☁️ Οι playlists & το History ανέβηκαν στο Drive!');
       } catch (err) {
         if (err.message !== 'TOKEN_EXPIRED') {
           updateDriveUI('Σφάλμα αποθήκευσης', true);
@@ -1417,7 +1625,7 @@
       try {
         showToast('☁️ Αναζήτηση MP3 στον φάκελο YT-MP3-DJ-Data...');
         const folderId = await ensureDriveFolder();
-        const q = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'audio/' and trashed=false`);
+        const q = encodeURIComponent(`'${folderId}' in parents and (mimeType contains 'audio/' or fileExtension='mp3' or fileExtension='m4a' or fileExtension='wav' or fileExtension='ogg') and trashed=false`);
         const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,size)&orderBy=name`);
         const data = await res.json();
 
@@ -1447,6 +1655,7 @@
         if (added === 0) {
           showToast(`✅ Όλα τα (${data.files.length}) Drive MP3 βρίσκονται ήδη στη λίστα`);
         } else {
+          if (viewingHistory) toggleHistoryView(false);
           saveQueueAndSyncPlaylist();
           renderQueue();
           showToast(`☁️ Προστέθηκαν ${added} MP3 από το Google Drive!`);
@@ -1480,6 +1689,312 @@
     let queue = JSON.parse(localStorage.getItem('dj_active_queue')) || [];
     let savedPlaylists = JSON.parse(localStorage.getItem('dj_saved_playlists')) || {};
     let activePlaylistName = localStorage.getItem('dj_active_pl_name') || '';
+    let ytHistory = JSON.parse(localStorage.getItem('dj_yt_history')) || [];
+    let viewingHistory = false;
+
+    // --- HIDDEN HISTORY LIST LOGIC ---
+    function recordToHistory(track) {
+      if (!track || track.source !== 'youtube' || !track.uri) return;
+      const existingIdx = ytHistory.findIndex(h => h.uri === track.uri);
+      const entry = {
+        source: 'youtube',
+        uri: track.uri,
+        title: track.title || `YouTube Video (${track.uri})`,
+        cueIn: track.cueIn || 0,
+        cueOut: track.cueOut || 0,
+        embedStatus: track.embedStatus || 'ok',
+        lastPlayedAt: new Date().toISOString()
+      };
+
+      if (existingIdx !== -1) {
+        // Keep best known title and cues, move to top
+        if (!track.title || track.title.startsWith('YouTube Video (')) {
+          entry.title = ytHistory[existingIdx].title;
+        }
+        if (!entry.cueIn && ytHistory[existingIdx].cueIn) entry.cueIn = ytHistory[existingIdx].cueIn;
+        if (!entry.cueOut && ytHistory[existingIdx].cueOut) entry.cueOut = ytHistory[existingIdx].cueOut;
+        ytHistory.splice(existingIdx, 1);
+      }
+
+      ytHistory.unshift(entry);
+      if (ytHistory.length > 300) ytHistory = ytHistory.slice(0, 300);
+      localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
+      scheduleDrivePush();
+      if (viewingHistory) renderQueue();
+    }
+
+    function toggleHistoryView(forceState = null) {
+      viewingHistory = (forceState !== null) ? forceState : !viewingHistory;
+      const btn = document.getElementById('btn-history-toggle');
+      const titleEl = document.getElementById('list-section-title');
+      const resetBtn = document.getElementById('btn-reset-played');
+      const activeBadge = document.getElementById('active-pl-label');
+
+      if (viewingHistory) {
+        btn.classList.add('active');
+        resetBtn.style.display = 'none';
+        activeBadge.textContent = '📜 Προβολή Ιστορικού (Κρυφή Λίστα)';
+        titleEl.innerHTML = `📜 HISTORY (<span id="q-count">${ytHistory.length}</span>)`;
+      } else {
+        btn.classList.remove('active');
+        resetBtn.style.display = 'inline-flex';
+        titleEl.innerHTML = `ΚΟΜΜΑΤΙΑ (<span id="q-count">${queue.length}</span>)`;
+        refreshPlaylistUI();
+      }
+      renderQueue();
+    }
+
+    // --- IN-APP YOUTUBE SEARCH (YouTube Data API v3) ---
+    let lastSearchResults = [];
+    let pendingListPickerTrack = null;
+
+    function formatViews(countStr) {
+      const n = Number(countStr);
+      if (!n || isNaN(n)) return '0 views';
+      if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B views`;
+      if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M views`;
+      if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K views`;
+      return `${n} views`;
+    }
+
+    function parseIsoDuration(iso) {
+      if (!iso) return '';
+      const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+      if (!m) return '';
+      const h = parseInt(m[1] || '0', 10);
+      const min = parseInt(m[2] || '0', 10);
+      const sec = parseInt(m[3] || '0', 10);
+      if (h > 0) return `${h}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    async function searchYouTubeInApp() {
+      const qInput = document.getElementById('yt-search-input');
+      const query = qInput.value.trim();
+      if (!query) {
+        showToast('Γράψε όνομα τραγουδιού ή καλλιτέχνη');
+        return;
+      }
+
+      const panel = document.getElementById('yt-search-results');
+      const listEl = document.getElementById('search-res-list');
+      const labelEl = document.getElementById('search-res-label');
+
+      panel.style.display = 'block';
+      labelEl.textContent = '⏳ ΑΝΑΖΗΤΗΣΗ ΣΤΟ YOUTUBE...';
+      listEl.innerHTML = '';
+
+      try {
+        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+        let sRes = await fetch(searchUrl);
+        let sData = await sRes.json();
+
+        // Fallback without category filter if needed
+        if (!sData.items || sData.items.length === 0) {
+          const broadUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${YOUTUBE_API_KEY}`;
+          sRes = await fetch(broadUrl);
+          sData = await sRes.json();
+        }
+
+        if (sData.error) {
+          throw new Error(sData.error.message || 'YouTube API Error');
+        }
+
+        const items = sData.items || [];
+        if (items.length === 0) {
+          labelEl.textContent = 'ΔΕΝ ΒΡΕΘΗΚΑΝ ΑΠΟΤΕΛΕΣΜΑΤΑ';
+          return;
+        }
+
+        const ids = items.map(i => i.id.videoId).filter(Boolean).join(',');
+        const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics,status&id=${ids}&key=${YOUTUBE_API_KEY}`;
+        const dRes = await fetch(detailsUrl);
+        const dData = await dRes.json();
+
+        const detailsMap = {};
+        (dData.items || []).forEach(v => { detailsMap[v.id] = v; });
+
+        lastSearchResults = items.map(item => {
+          const vid = item.id.videoId;
+          const det = detailsMap[vid] || {};
+          const snip = det.snippet || item.snippet || {};
+          const stats = det.statistics || {};
+          const cDet = det.contentDetails || {};
+          const status = det.status || {};
+
+          return {
+            uri: vid,
+            title: snip.title || 'YouTube Video',
+            channel: snip.channelTitle || '',
+            thumb: (snip.thumbnails && (snip.thumbnails.medium || snip.thumbnails.default))?.url || '',
+            views: formatViews(stats.viewCount),
+            quality: (cDet.definition || 'sd').toUpperCase(),
+            duration: parseIsoDuration(cDet.duration),
+            embeddable: status.embeddable !== false
+          };
+        });
+
+        labelEl.textContent = `ΑΠΟΤΕΛΕΣΜΑΤΑ (${lastSearchResults.length})`;
+        renderSearchResults();
+      } catch (err) {
+        console.error(err);
+        labelEl.textContent = 'ΣΦΑΛΜΑ ΑΝΑΖΗΤΗΣΗΣ';
+        listEl.innerHTML = `<div style="font-size:0.82em; color:#fca5a5; padding:6px;">❌ ${err.message}</div>`;
+      }
+    }
+
+    function renderSearchResults() {
+      const listEl = document.getElementById('search-res-list');
+      listEl.innerHTML = '';
+
+      lastSearchResults.forEach((res, idx) => {
+        const card = document.createElement('div');
+        card.className = 'sr-card';
+
+        const qBadgeClass = res.quality === 'HD' ? 'sr-badge hd' : 'sr-badge';
+        const qLabel = res.quality === 'HD' ? '🎬 HD (720p/1080p)' : '📼 SD';
+        const embedBadge = res.embeddable
+          ? '<span class="sr-badge ok">✅ OK</span>'
+          : '<span class="sr-badge blocked">🔒 Κλειδωμένο</span>';
+
+        card.innerHTML = `
+          <div class="sr-top">
+            <img class="sr-thumb" src="${res.thumb}" alt="" loading="lazy" />
+            <div class="sr-meta">
+              <div class="sr-title">${res.title}</div>
+              <div class="sr-channel">${res.channel}</div>
+              <div class="sr-badges">
+                <span class="${qBadgeClass}">${qLabel}</span>
+                <span class="sr-badge">👁️ ${res.views}</span>
+                ${res.duration ? `<span class="sr-badge">⏱️ ${res.duration}</span>` : ''}
+                ${embedBadge}
+              </div>
+            </div>
+          </div>
+          <div class="sr-actions">
+            <button class="btn-deck-a" onclick="playSearchResultOnDeck(${idx}, 'A')">→ Deck A</button>
+            <button class="btn-deck-b" onclick="playSearchResultOnDeck(${idx}, 'B')">→ Deck B</button>
+            <button class="btn-save-active" onclick="openListPickerForSearchResult(${idx})">➕ Add to list</button>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function closeSearchResults() {
+      document.getElementById('yt-search-results').style.display = 'none';
+    }
+
+    function buildTrackFromSearchResult(res) {
+      return {
+        source: 'youtube',
+        uri: res.uri,
+        title: res.title,
+        cueIn: 0,
+        cueOut: 0,
+        embedStatus: res.embeddable ? 'ok' : 'blocked',
+        played: false
+      };
+    }
+
+    function playSearchResultOnDeck(idx, deckId) {
+      const res = lastSearchResults[idx];
+      if (!res) return;
+      const track = buildTrackFromSearchResult(res);
+      recordToHistory(track);
+      loadTrackToDeck(deckId, track, true);
+      showToast(`▶️ Deck ${deckId}: ${track.title}`);
+    }
+
+    function openListPickerForSearchResult(idx) {
+      const res = lastSearchResults[idx];
+      if (!res) return;
+      pendingListPickerTrack = buildTrackFromSearchResult(res);
+
+      document.getElementById('list-picker-track-title').textContent = `🎵 ${pendingListPickerTrack.title}`;
+      const optionsBox = document.getElementById('list-picker-options');
+      optionsBox.innerHTML = '';
+
+      // 1. Current Active Queue / List
+      const activeNameLabel = activePlaylistName
+        ? `📂 Ενεργή Λίστα: ${activePlaylistName}`
+        : '📝 Τρέχουσα Πρόχειρη Λίστα (Queue)';
+      const btnCurrent = document.createElement('button');
+      btnCurrent.className = 'list-picker-item btn-save-active';
+      btnCurrent.innerHTML = `<span>${activeNameLabel}</span><span>(${queue.length})</span>`;
+      btnCurrent.onclick = () => addPendingTrackToTargetList('__CURRENT__');
+      optionsBox.appendChild(btnCurrent);
+
+      // 2. All Other Saved Playlists
+      Object.keys(savedPlaylists).forEach(plName => {
+        if (plName === activePlaylistName) return;
+        const btn = document.createElement('button');
+        btn.className = 'list-picker-item';
+        btn.innerHTML = `<span>📁 ${plName}</span><span>(${savedPlaylists[plName].length})</span>`;
+        btn.onclick = () => addPendingTrackToTargetList(plName);
+        optionsBox.appendChild(btn);
+      });
+
+      // 3. Create New Playlist on the spot
+      const btnNew = document.createElement('button');
+      btnNew.className = 'list-picker-item btn-drive';
+      btnNew.innerHTML = `<span>➕ Δημιουργία Νέας Λίστας...</span><span>+</span>`;
+      btnNew.onclick = () => {
+        const newName = prompt('Όνομα νέας Playlist:');
+        if (!newName || !newName.trim()) return;
+        const clean = newName.trim();
+        if (!savedPlaylists[clean]) savedPlaylists[clean] = [];
+        addPendingTrackToTargetList(clean);
+      };
+      optionsBox.appendChild(btnNew);
+
+      document.getElementById('list-picker-modal').classList.add('open');
+    }
+
+    function closeListPicker() {
+      document.getElementById('list-picker-modal').classList.remove('open');
+      pendingListPickerTrack = null;
+    }
+
+    function addPendingTrackToTargetList(target) {
+      if (!pendingListPickerTrack) return;
+      const track = { ...pendingListPickerTrack };
+      recordToHistory(track);
+
+      if (target === '__CURRENT__') {
+        if (viewingHistory) toggleHistoryView(false);
+        queue.push(track);
+        if (track.embedStatus === 'checking') enqueueValidation(track);
+        saveQueueAndSyncPlaylist();
+        renderQueue();
+        showToast(activePlaylistName
+          ? `✅ Προστέθηκε στο "${activePlaylistName}"`
+          : '✅ Προστέθηκε στην τρέχουσα λίστα');
+      } else {
+        const cleanItem = {
+          source: track.source,
+          uri: track.uri,
+          title: track.title,
+          cueIn: 0,
+          cueOut: 0,
+          embedStatus: track.embedStatus
+        };
+        if (!savedPlaylists[target]) savedPlaylists[target] = [];
+        savedPlaylists[target].push(cleanItem);
+        localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
+
+        if (activePlaylistName === target) {
+          queue.push({ ...cleanItem, played: false });
+          localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
+          if (!viewingHistory) renderQueue();
+        }
+        refreshPlaylistUI();
+        scheduleDrivePush();
+        showToast(`✅ Προστέθηκε στη λίστα "${target}"!`);
+      }
+
+      closeListPicker();
+    }
 
     // Auto-DJ Timing Settings
     let autoFadeSec = parseInt(localStorage.getItem('dj_fade_sec')) || 6;
@@ -1639,8 +2154,9 @@
     }
 
     function openYouTubeSearch(title) {
-      const cleanQuery = encodeURIComponent(`${title} lyrics`);
-      window.open(`https://www.youtube.com/results?search_query=${cleanQuery}`, '_blank');
+      document.getElementById('yt-search-input').value = title;
+      searchYouTubeInApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function searchAlternativeForDeck(id) {
@@ -1685,6 +2201,12 @@
       if (inQ) {
         inQ.cueIn = track.cueIn || 0;
         inQ.cueOut = track.cueOut || 0;
+      }
+      const inH = ytHistory.find(h => h.uri === track.uri && track.source === 'youtube');
+      if (inH) {
+        inH.cueIn = track.cueIn || 0;
+        inH.cueOut = track.cueOut || 0;
+        localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
       }
       saveQueueAndSyncPlaylist();
       renderQueue();
@@ -1912,6 +2434,7 @@
       const overlay = document.getElementById(`overlay-${id.toLowerCase()}`);
 
       if (track.source === 'youtube') {
+        recordToHistory(track);
         overlay.style.display = 'none';
         if (d.ytReady) {
           const startSec = track.cueIn || 0;
@@ -2163,7 +2686,9 @@
         embedStatus: 'checking',
         played: false
       };
+      if (viewingHistory) toggleHistoryView(false);
       queue.push(item);
+      recordToHistory(item);
       enqueueValidation(item);
       return item;
     }
@@ -2196,6 +2721,7 @@
           }
 
           if (videos.length > 0) {
+            if (viewingHistory) toggleHistoryView(false);
             videos.forEach(v => {
               const item = {
                 source: 'youtube',
@@ -2207,6 +2733,7 @@
                 played: false
               };
               queue.push(item);
+              recordToHistory(item);
               enqueueValidation(item);
             });
             saveQueueAndSyncPlaylist();
@@ -2299,6 +2826,7 @@
 
     function handleMP3Files(files) {
       if (!files.length) return;
+      if (viewingHistory) toggleHistoryView(false);
       Array.from(files).forEach(file => {
         const objectUrl = URL.createObjectURL(file);
         const cleanName = file.name.replace(/\.[^/.]+$/, "");
@@ -2323,19 +2851,36 @@
       if (nextIdx === -1) return false;
       queue[nextIdx].played = true;
       saveQueueAndSyncPlaylist();
-      renderQueue();
+      if (!viewingHistory) renderQueue();
       loadTrackToDeck(id, queue[nextIdx], autoPlay);
       return true;
     }
 
     function loadSpecificToDeck(index, id) {
+      if (viewingHistory) {
+        const hItem = ytHistory[index];
+        if (!hItem) return;
+        loadTrackToDeck(id, { ...hItem }, true);
+        return;
+      }
       queue[index].played = true;
       saveQueueAndSyncPlaylist();
       renderQueue();
       loadTrackToDeck(id, queue[index], true);
     }
 
+    function addHistoryItemToCurrentQueue(index) {
+      const hItem = ytHistory[index];
+      if (!hItem) return;
+      queue.push({ ...hItem, played: false });
+      saveQueueAndSyncPlaylist();
+      showToast(activePlaylistName
+        ? `✅ Αντιγράφηκε στο "${activePlaylistName}"`
+        : '✅ Αντιγράφηκε στην τρέχουσα λίστα');
+    }
+
     function moveTrack(index, direction) {
+      if (viewingHistory) return;
       const newIdx = index + direction;
       if (newIdx < 0 || newIdx >= queue.length) return;
       const temp = queue[index];
@@ -2346,6 +2891,13 @@
     }
 
     function removeFromQueue(index) {
+      if (viewingHistory) {
+        ytHistory.splice(index, 1);
+        localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
+        scheduleDrivePush();
+        renderQueue();
+        return;
+      }
       queue.splice(index, 1);
       saveQueueAndSyncPlaylist();
       renderQueue();
@@ -2358,7 +2910,15 @@
       showToast('🔄 Όλα τα κομμάτια είναι έτοιμα ξανά');
     }
 
-    function clearQueue() {
+    function clearCurrentList() {
+      if (viewingHistory) {
+        if (!confirm('Να διαγραφεί όλο το ιστορικό (History);')) return;
+        ytHistory = [];
+        localStorage.setItem('dj_yt_history', '[]');
+        scheduleDrivePush();
+        renderQueue();
+        return;
+      }
       if (!confirm('Να αδειάσει η τρέχουσα λίστα;')) return;
       queue = [];
       saveQueueAndSyncPlaylist();
@@ -2376,20 +2936,25 @@
       if (activePlaylistName && savedPlaylists[activePlaylistName]) {
         savedPlaylists[activePlaylistName] = cleanQueue;
         localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
-        refreshPlaylistUI();
+        if (!viewingHistory) refreshPlaylistUI();
       }
       scheduleDrivePush();
     }
 
     function renderQueue() {
       const list = document.getElementById('queue-list');
-      document.getElementById('q-count').textContent = queue.length;
+      const activeData = viewingHistory ? ytHistory : queue;
+      const countSpan = document.getElementById('q-count');
+      if (countSpan) countSpan.textContent = activeData.length;
       list.innerHTML = '';
 
-      queue.forEach((item, idx) => {
+      activeData.forEach((item, idx) => {
         const li = document.createElement('li');
         const isBlocked = item.embedStatus === 'blocked';
-        li.className = 'queue-item' + (isBlocked ? ' blocked-item' : '') + (item.played ? ' played-item' : '');
+        li.className = 'queue-item'
+          + (isBlocked ? ' blocked-item' : '')
+          + (!viewingHistory && item.played ? ' played-item' : '')
+          + (viewingHistory ? ' history-item' : '');
 
         let statusBadge = '';
         if (item.source === 'youtube') {
@@ -2400,12 +2965,17 @@
         const cueBadge = (item.cueIn > 0 || item.cueOut > 0)
           ? `<span class="q-cue-tag">✂️ ${item.cueIn > 0 ? formatTime(item.cueIn) : '00:00'}→${item.cueOut > 0 ? formatTime(item.cueOut) : 'End'}</span>`
           : '';
-        const playedBadge = item.played ? '<span class="q-status-played">✓ Έπαιξε</span>' : '';
+        const playedBadge = (!viewingHistory && item.played) ? '<span class="q-status-played">✓ Έπαιξε</span>' : '';
         const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
         let sourceTagHtml = `<span class="q-tag">${idx + 1}. MP3</span>`;
         if (item.source === 'youtube') sourceTagHtml = `<span class="q-tag">${idx + 1}. YT</span>`;
         else if (item.source === 'drive_mp3') sourceTagHtml = `<span class="q-tag drive-tag">${idx + 1}. ☁️ MP3</span>`;
+
+        const orderBtns = viewingHistory
+          ? `<button onclick="addHistoryItemToCurrentQueue(${idx})" title="Προσθήκη στη λίστα">+ Λίστα</button>`
+          : `<button onclick="moveTrack(${idx}, -1)" title="Πάνω">▲</button>
+             <button onclick="moveTrack(${idx}, 1)" title="Κάτω">▼</button>`;
 
         li.innerHTML = `
           <div class="q-info">
@@ -2418,8 +2988,7 @@
             <span class="q-title">${item.title}</span>
           </div>
           <div class="q-actions">
-            <button onclick="moveTrack(${idx}, -1)" title="Πάνω">▲</button>
-            <button onclick="moveTrack(${idx}, 1)" title="Κάτω">▼</button>
+            ${orderBtns}
             ${isBlocked
               ? `<button class="btn-find" onclick="openYouTubeSearch('${safeTitle}')">🔎 Βρες άλλο</button>`
               : `<button onclick="loadSpecificToDeck(${idx}, 'A')">→ A</button>
@@ -2449,13 +3018,13 @@
       });
 
       if (activePlaylistName && savedPlaylists[activePlaylistName]) {
-        label.textContent = `Ενεργή: ${activePlaylistName} (Auto-Save)`;
+        if (!viewingHistory) label.textContent = `Ενεργή: ${activePlaylistName} (Auto-Save)`;
         btnUpdate.style.display = 'inline-flex';
         btnDel.style.display = 'inline-flex';
       } else {
         activePlaylistName = '';
         localStorage.setItem('dj_active_pl_name', '');
-        label.textContent = 'Πρόχειρη Λίστα';
+        if (!viewingHistory) label.textContent = 'Πρόχειρη Λίστα';
         btnUpdate.style.display = 'none';
         btnDel.style.display = 'none';
       }
@@ -2466,6 +3035,7 @@
       if (!name || !name.trim()) return;
       const cleanName = name.trim();
 
+      if (viewingHistory) toggleHistoryView(false);
       savedPlaylists[cleanName] = getCleanQueueCopy();
       activePlaylistName = cleanName;
       localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
@@ -2486,6 +3056,7 @@
     }
 
     function loadSavedPlaylist(name) {
+      if (viewingHistory) toggleHistoryView(false);
       activePlaylistName = name;
       localStorage.setItem('dj_active_pl_name', activePlaylistName);
 
@@ -2514,6 +3085,7 @@
       localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
       localStorage.setItem('dj_active_pl_name', '');
       localStorage.setItem('dj_active_queue', '[]');
+      if (viewingHistory) toggleHistoryView(false);
       renderQueue();
       refreshPlaylistUI();
       scheduleDrivePush();
@@ -2526,11 +3098,12 @@
         version: APP_VERSION,
         exportedAt: new Date().toISOString(),
         playlists: savedPlaylists,
-        draftQueue: getCleanQueueCopy()
+        draftQueue: getCleanQueueCopy(),
+        history: ytHistory
       };
 
       const totalPlaylists = Object.keys(savedPlaylists).length;
-      if (totalPlaylists === 0 && dataToExport.draftQueue.length === 0) {
+      if (totalPlaylists === 0 && dataToExport.draftQueue.length === 0 && ytHistory.length === 0) {
         showToast('Δεν υπάρχουν playlists για εξαγωγή');
         return;
       }
@@ -2548,7 +3121,7 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showToast(`📤 Εξήχθησαν ${totalPlaylists} playlists`);
+      showToast(`📤 Εξήχθησαν ${totalPlaylists} playlists & History`);
     }
 
     function importPlaylists(file) {
@@ -2581,6 +3154,13 @@
           if (addedCount === 0 && Array.isArray(parsed.draftQueue) && parsed.draftQueue.length > 0) {
             savedPlaylists['Imported List'] = parsed.draftQueue;
             addedCount = 1;
+          }
+
+          if (Array.isArray(parsed.history)) {
+            parsed.history.forEach(h => {
+              if (h && h.uri && !ytHistory.some(x => x.uri === h.uri)) ytHistory.push(h);
+            });
+            localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
           }
 
           localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
