@@ -475,6 +475,30 @@
       background: var(--accent-auto) !important;
     }
 
+    .autostart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .autostart-btn {
+      width: 100%;
+      font-size: 0.88em;
+      padding: 10px 8px;
+    }
+
+    .autostart-btn.on {
+      background: #064e3b;
+      border-color: var(--accent-auto);
+      color: #a7f3d0;
+    }
+
+    .autostart-btn.off {
+      background: var(--bg-input);
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+
     .pin-status-row {
       display: flex;
       justify-content: space-between;
@@ -829,7 +853,7 @@
     .sr-badge.hd {
       background: #0c4a6e;
       border-color: var(--accent-drive);
-      color: #bae6fd;
+      color: #baefd2;
     }
 
     .sr-badge.ok {
@@ -894,7 +918,7 @@
       gap: 8px;
     }
 
-    /* Queue List */
+    /* Queue List & In-List Filter */
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -913,6 +937,25 @@
       padding: 6px 10px;
       font-size: 0.8em;
       min-height: 36px;
+    }
+
+    .list-filter-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .list-filter-row input {
+      min-height: 40px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+    }
+
+    .list-filter-row button {
+      min-height: 40px;
+      padding: 6px 12px;
+      font-size: 0.85em;
+      display: none;
     }
 
     .queue-list {
@@ -970,6 +1013,11 @@
     .q-tag.drive-tag {
       background: #0c4a6e;
       color: #bae6fd;
+    }
+
+    .q-tag.mp3-tag {
+      background: #3f3f46;
+      color: #f4f4f5;
     }
 
     .q-cue-tag {
@@ -1136,9 +1184,18 @@
         </div>
       </div>
 
-      <!-- 2. PIN Lock -->
+      <!-- 2. Deck Default Auto-Start -->
       <div class="modal-section">
-        <div class="modal-section-title">2. PIN Κατά το Άνοιγμα</div>
+        <div class="modal-section-title">2. Auto-Start κατά τη φόρτωση σε Deck</div>
+        <div class="autostart-grid">
+          <button id="btn-autostart-a" class="autostart-btn" onclick="toggleDeckAutoStartSetting('A')">Deck A: ON</button>
+          <button id="btn-autostart-b" class="autostart-btn" onclick="toggleDeckAutoStartSetting('B')">Deck B: ON</button>
+        </div>
+      </div>
+
+      <!-- 3. PIN Lock -->
+      <div class="modal-section">
+        <div class="modal-section-title">3. PIN Κατά το Άνοιγμα</div>
         <div class="pin-status-row">
           <span>Κατάσταση PIN:</span>
           <span id="pin-status-label" class="pin-badge-off">Ανενεργό</span>
@@ -1153,9 +1210,9 @@
         </div>
       </div>
 
-      <!-- 3. Google Drive Sync -->
+      <!-- 4. Google Drive Sync -->
       <div class="modal-section">
-        <div class="modal-section-title">3. Google Drive Cloud Sync</div>
+        <div class="modal-section-title">4. Google Drive Cloud Sync</div>
         <div class="drive-info-box">
           <div>Κατάσταση: <strong id="drive-status-text" style="color:var(--text-muted);">Αποσυνδεδεμένο</strong></div>
           <div id="drive-last-sync" style="font-size:0.85em; color:var(--text-muted); margin-top:2px;">Φάκελος Drive: YT-MP3-DJ-Data</div>
@@ -1337,6 +1394,13 @@
       <button onclick="clearCurrentList()">Καθαρισμός</button>
     </div>
   </div>
+
+  <!-- In-List Search Filter -->
+  <div class="list-filter-row">
+    <input type="text" id="list-filter-input" placeholder="🔎 Αναζήτηση στη λίστα..." oninput="onListFilterInput()" />
+    <button id="btn-clear-filter" onclick="clearListFilter()" title="Καθαρισμός φίλτρου">✕</button>
+  </div>
+
   <ul class="queue-list" id="queue-list"></ul>
 
   <!-- FOOTER VERSIONING -->
@@ -1352,7 +1416,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v2.1.1 • PWA Fullscreen & API Check';
+    const APP_VERSION = 'v2.2.0 • Universal History, Filter & Deck Auto-Start';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
@@ -1388,6 +1452,7 @@
     let driveAutoEnabled = localStorage.getItem('dj_drive_enabled') === '1';
     let driveSyncDebounce = null;
     const driveBlobCache = {};
+    const localMp3Registry = {}; // session cache for replaying local MP3s from History
 
     function updateDriveUI(statusText, isConnected = false, subText = null) {
       const pill = document.getElementById('header-drive-pill');
@@ -1732,15 +1797,17 @@
     let activePlaylistName = localStorage.getItem('dj_active_pl_name') || '';
     let ytHistory = JSON.parse(localStorage.getItem('dj_yt_history')) || [];
     let viewingHistory = false;
+    let listFilterQuery = '';
 
-    // --- HIDDEN HISTORY LIST LOGIC ---
+    // --- UNIVERSAL HISTORY LOGIC (ALL SOURCES: YT, DRIVE MP3, LOCAL MP3) ---
     function recordToHistory(track) {
-      if (!track || track.source !== 'youtube' || !track.uri) return;
-      const existingIdx = ytHistory.findIndex(h => h.uri === track.uri);
+      if (!track || !track.uri) return;
+      const src = track.source || 'youtube';
+      const existingIdx = ytHistory.findIndex(h => h.uri === track.uri && (h.source || 'youtube') === src);
       const entry = {
-        source: 'youtube',
+        source: src,
         uri: track.uri,
-        title: track.title || `YouTube Video (${track.uri})`,
+        title: track.title || (src === 'youtube' ? `YouTube Video (${track.uri})` : track.uri),
         cueIn: track.cueIn || 0,
         cueOut: track.cueOut || 0,
         embedStatus: track.embedStatus || 'ok',
@@ -1748,16 +1815,17 @@
       };
 
       if (existingIdx !== -1) {
+        const prev = ytHistory[existingIdx];
         if (!track.title || track.title.startsWith('YouTube Video (')) {
-          entry.title = ytHistory[existingIdx].title;
+          entry.title = prev.title;
         }
-        if (!entry.cueIn && ytHistory[existingIdx].cueIn) entry.cueIn = ytHistory[existingIdx].cueIn;
-        if (!entry.cueOut && ytHistory[existingIdx].cueOut) entry.cueOut = ytHistory[existingIdx].cueOut;
+        if (!entry.cueIn && prev.cueIn) entry.cueIn = prev.cueIn;
+        if (!entry.cueOut && prev.cueOut) entry.cueOut = prev.cueOut;
         ytHistory.splice(existingIdx, 1);
       }
 
       ytHistory.unshift(entry);
-      if (ytHistory.length > 300) ytHistory = ytHistory.slice(0, 300);
+      if (ytHistory.length > 400) ytHistory = ytHistory.slice(0, 400);
       localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
       scheduleDrivePush();
       if (viewingHistory) renderQueue();
@@ -1766,21 +1834,35 @@
     function toggleHistoryView(forceState = null) {
       viewingHistory = (forceState !== null) ? forceState : !viewingHistory;
       const btn = document.getElementById('btn-history-toggle');
-      const titleEl = document.getElementById('list-section-title');
       const resetBtn = document.getElementById('btn-reset-played');
       const activeBadge = document.getElementById('active-pl-label');
 
       if (viewingHistory) {
         btn.classList.add('active');
         resetBtn.style.display = 'none';
-        activeBadge.textContent = '📜 Προβολή Ιστορικού (Κρυφή Λίστα)';
-        titleEl.innerHTML = `📜 HISTORY (<span id="q-count">${ytHistory.length}</span>)`;
+        activeBadge.textContent = '📜 Προβολή Ιστορικού (Όλες οι πηγές)';
       } else {
         btn.classList.remove('active');
         resetBtn.style.display = 'inline-flex';
-        titleEl.innerHTML = `ΚΟΜΜΑΤΙΑ (<span id="q-count">${queue.length}</span>)`;
         refreshPlaylistUI();
       }
+      renderQueue();
+    }
+
+    // --- IN-LIST SEARCH FILTER ---
+    function onListFilterInput() {
+      const inp = document.getElementById('list-filter-input');
+      const clearBtn = document.getElementById('btn-clear-filter');
+      listFilterQuery = inp.value.trim().toLowerCase();
+      clearBtn.style.display = listFilterQuery ? 'inline-flex' : 'none';
+      renderQueue();
+    }
+
+    function clearListFilter() {
+      const inp = document.getElementById('list-filter-input');
+      inp.value = '';
+      listFilterQuery = '';
+      document.getElementById('btn-clear-filter').style.display = 'none';
       renderQueue();
     }
 
@@ -1940,9 +2022,9 @@
       const res = lastSearchResults[idx];
       if (!res) return;
       const track = buildTrackFromSearchResult(res);
-      recordToHistory(track);
-      loadTrackToDeck(deckId, track, true);
-      showToast(`▶️ Deck ${deckId}: ${track.title}`);
+      const shouldStart = getDeckDefaultAutoStart(deckId);
+      loadTrackToDeck(deckId, track, shouldStart);
+      showToast(shouldStart ? `▶️ Deck ${deckId}: ${track.title}` : `⏸️ Φορτώθηκε στο Deck ${deckId} (Έτοιμο)`);
     }
 
     function openListPickerForSearchResult(idx) {
@@ -1995,7 +2077,6 @@
     function addPendingTrackToTargetList(target) {
       if (!pendingListPickerTrack) return;
       const track = { ...pendingListPickerTrack };
-      recordToHistory(track);
 
       if (target === '__CURRENT__') {
         if (viewingHistory) toggleHistoryView(false);
@@ -2047,6 +2128,33 @@
       document.getElementById('lead-time-val').textContent = `${autoLeadSec}s`;
       localStorage.setItem('dj_fade_sec', autoFadeSec);
       localStorage.setItem('dj_lead_sec', autoLeadSec);
+    }
+
+    // --- DECK DEFAULT AUTO-START SETTINGS ---
+    const deckAutoStart = {
+      A: localStorage.getItem('dj_autostart_a') !== '0', // default true unless explicitly set '0'
+      B: localStorage.getItem('dj_autostart_b') !== '0'
+    };
+
+    function getDeckDefaultAutoStart(id) {
+      return !!deckAutoStart[id];
+    }
+
+    function refreshDeckAutoStartUI() {
+      ['A', 'B'].forEach(id => {
+        const btn = document.getElementById(`btn-autostart-${id.toLowerCase()}`);
+        const isOn = deckAutoStart[id];
+        btn.textContent = isOn ? `▶️ Deck ${id}: Auto-Start ON` : `⏸️ Deck ${id}: Auto-Start OFF`;
+        btn.classList.toggle('on', isOn);
+        btn.classList.toggle('off', !isOn);
+      });
+    }
+
+    function toggleDeckAutoStartSetting(id) {
+      deckAutoStart[id] = !deckAutoStart[id];
+      localStorage.setItem(`dj_autostart_${id.toLowerCase()}`, deckAutoStart[id] ? '1' : '0');
+      refreshDeckAutoStartUI();
+      showToast(`Deck ${id}: Auto-Start ${deckAutoStart[id] ? 'ON (Ξεκινά αυτόματα)' : 'OFF (Περιμένει Play)'}`);
     }
 
     // --- PIN LOCK LOGIC ---
@@ -2117,6 +2225,7 @@
 
     function openSettings() {
       refreshPinUI();
+      refreshDeckAutoStartUI();
       document.getElementById('pin-new-input').value = '';
       document.getElementById('settings-modal').classList.add('open');
     }
@@ -2233,7 +2342,7 @@
         inQ.cueIn = track.cueIn || 0;
         inQ.cueOut = track.cueOut || 0;
       }
-      const inH = ytHistory.find(h => h.uri === track.uri && track.source === 'youtube');
+      const inH = ytHistory.find(h => h.uri === track.uri && (h.source || 'youtube') === track.source);
       if (inH) {
         inH.cueIn = track.cueIn || 0;
         inH.cueOut = track.cueOut || 0;
@@ -2364,7 +2473,6 @@
           item.embedStatus = statusMap[item.uri] || 'blocked';
         });
       } catch (e) {
-        // Fallback if API fails: mark as ok so items don't stay stuck
         pending.forEach(item => { item.embedStatus = 'ok'; });
       }
 
@@ -2384,7 +2492,7 @@
           d.track.embedStatus = 'ok';
           const inQ = queue.find(q => q.uri === d.track.uri && q.source === 'youtube');
           if (inQ) inQ.embedStatus = 'ok';
-          const inH = ytHistory.find(h => h.uri === d.track.uri && h.source === 'youtube');
+          const inH = ytHistory.find(h => h.uri === d.track.uri && (h.source || 'youtube') === 'youtube');
           if (inH) {
             inH.embedStatus = 'ok';
             localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
@@ -2461,10 +2569,12 @@
       document.getElementById(`alt-${id.toLowerCase()}`).style.display = (track.embedStatus === 'blocked') ? 'inline-flex' : 'none';
       updateDeckCueButtons(id);
 
+      // Record EVERY played/loaded source (YouTube, Drive MP3, Local MP3) into History
+      recordToHistory(track);
+
       const overlay = document.getElementById(`overlay-${id.toLowerCase()}`);
 
       if (track.source === 'youtube') {
-        recordToHistory(track);
         overlay.style.display = 'none';
         if (d.ytReady) {
           const startSec = track.cueIn || 0;
@@ -2480,8 +2590,9 @@
       } else if (track.source === 'mp3') {
         overlay.style.display = 'flex';
         overlay.textContent = `🎵 MP3: ${track.title}`;
-        if (track.objectUrl) {
-          d.audioEl.src = track.objectUrl;
+        const objUrl = track.objectUrl || localMp3Registry[track.uri];
+        if (objUrl) {
+          d.audioEl.src = objUrl;
           if (track.cueIn > 0) {
             d.audioEl.currentTime = track.cueIn;
             d.appliedCueIn = true;
@@ -2525,7 +2636,7 @@
     function togglePlay(id) {
       const d = decks[id];
       if (!d.track) {
-        if (queue.length > 0) loadNextUnplayedToDeck(id, true);
+        if (queue.length > 0) loadNextUnplayedToDeck(id, getDeckDefaultAutoStart(id));
         else showToast('Η λίστα είναι άδεια');
         return;
       }
@@ -2718,7 +2829,6 @@
       };
       if (viewingHistory) toggleHistoryView(false);
       queue.push(item);
-      recordToHistory(item);
       enqueueValidation(item);
       return item;
     }
@@ -2763,7 +2873,6 @@
                 played: false
               };
               queue.push(item);
-              recordToHistory(item);
               enqueueValidation(item);
             });
             saveQueueAndSyncPlaylist();
@@ -2859,6 +2968,7 @@
       if (viewingHistory) toggleHistoryView(false);
       Array.from(files).forEach(file => {
         const objectUrl = URL.createObjectURL(file);
+        localMp3Registry[file.name] = objectUrl;
         const cleanName = file.name.replace(/\.[^/.]+$/, "");
         queue.push({
           source: 'mp3',
@@ -2887,16 +2997,19 @@
     }
 
     function loadSpecificToDeck(index, id) {
+      const shouldStart = getDeckDefaultAutoStart(id);
       if (viewingHistory) {
         const hItem = ytHistory[index];
         if (!hItem) return;
-        loadTrackToDeck(id, { ...hItem }, true);
+        loadTrackToDeck(id, { ...hItem }, shouldStart);
+        if (!shouldStart) showToast(`⏸️ Φορτώθηκε στο Deck ${id} (Πάτα Play)`);
         return;
       }
       queue[index].played = true;
       saveQueueAndSyncPlaylist();
       renderQueue();
-      loadTrackToDeck(id, queue[index], true);
+      loadTrackToDeck(id, queue[index], shouldStart);
+      if (!shouldStart) showToast(`⏸️ Φορτώθηκε στο Deck ${id} (Πάτα Play)`);
     }
 
     function addHistoryItemToCurrentQueue(index) {
@@ -2910,7 +3023,7 @@
     }
 
     function moveTrack(index, direction) {
-      if (viewingHistory) return;
+      if (viewingHistory || listFilterQuery) return;
       const newIdx = index + direction;
       if (newIdx < 0 || newIdx >= queue.length) return;
       const temp = queue[index];
@@ -2974,11 +3087,28 @@
     function renderQueue() {
       const list = document.getElementById('queue-list');
       const activeData = viewingHistory ? ytHistory : queue;
-      const countSpan = document.getElementById('q-count');
-      if (countSpan) countSpan.textContent = activeData.length;
+      const titleEl = document.getElementById('list-section-title');
+
+      const filteredEntries = activeData
+        .map((item, idx) => ({ item, idx }))
+        .filter(({ item }) => !listFilterQuery || (item.title && item.title.toLowerCase().includes(listFilterQuery)));
+
+      const countDisplay = listFilterQuery
+        ? `${filteredEntries.length} / ${activeData.length}`
+        : `${activeData.length}`;
+
+      titleEl.innerHTML = viewingHistory
+        ? `📜 HISTORY (<span id="q-count">${countDisplay}</span>)`
+        : `ΚΟΜΜΑΤΙΑ (<span id="q-count">${countDisplay}</span>)`;
+
       list.innerHTML = '';
 
-      activeData.forEach((item, idx) => {
+      if (filteredEntries.length === 0 && listFilterQuery) {
+        list.innerHTML = `<li style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.9em;">Δεν βρέθηκαν κομμάτια για "${listFilterQuery}"</li>`;
+        return;
+      }
+
+      filteredEntries.forEach(({ item, idx }) => {
         const li = document.createElement('li');
         const isBlocked = item.embedStatus === 'blocked';
         li.className = 'queue-item'
@@ -2998,14 +3128,17 @@
         const playedBadge = (!viewingHistory && item.played) ? '<span class="q-status-played">✓ Έπαιξε</span>' : '';
         const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-        let sourceTagHtml = `<span class="q-tag">${idx + 1}. MP3</span>`;
+        let sourceTagHtml = `<span class="q-tag mp3-tag">${idx + 1}. MP3</span>`;
         if (item.source === 'youtube') sourceTagHtml = `<span class="q-tag">${idx + 1}. YT</span>`;
         else if (item.source === 'drive_mp3') sourceTagHtml = `<span class="q-tag drive-tag">${idx + 1}. ☁️ MP3</span>`;
 
-        const orderBtns = viewingHistory
-          ? `<button onclick="addHistoryItemToCurrentQueue(${idx})" title="Προσθήκη στη λίστα">+ Λίστα</button>`
-          : `<button onclick="moveTrack(${idx}, -1)" title="Πάνω">▲</button>
-             <button onclick="moveTrack(${idx}, 1)" title="Κάτω">▼</button>`;
+        let orderBtns = '';
+        if (viewingHistory) {
+          orderBtns = `<button onclick="addHistoryItemToCurrentQueue(${idx})" title="Προσθήκη στη λίστα">+ Λίστα</button>`;
+        } else if (!listFilterQuery) {
+          orderBtns = `<button onclick="moveTrack(${idx}, -1)" title="Πάνω">▲</button>
+                       <button onclick="moveTrack(${idx}, 1)" title="Κάτω">▼</button>`;
+        }
 
         li.innerHTML = `
           <div class="q-info">
@@ -3087,6 +3220,7 @@
 
     function loadSavedPlaylist(name) {
       if (viewingHistory) toggleHistoryView(false);
+      clearListFilter();
       activePlaylistName = name;
       localStorage.setItem('dj_active_pl_name', activePlaylistName);
 
@@ -3186,7 +3320,10 @@
 
           if (Array.isArray(parsed.history)) {
             parsed.history.forEach(h => {
-              if (h && h.uri && !ytHistory.some(x => x.uri === h.uri)) ytHistory.push(h);
+              const src = h.source || 'youtube';
+              if (h && h.uri && !ytHistory.some(x => x.uri === h.uri && (x.source || 'youtube') === src)) {
+                ytHistory.push({ ...h, source: src });
+              }
             });
             localStorage.setItem('dj_yt_history', JSON.stringify(ytHistory));
           }
@@ -3205,6 +3342,7 @@
 
     // Init
     refreshPinUI();
+    refreshDeckAutoStartUI();
     if (savedPin) {
       document.getElementById('pin-lock-screen').classList.add('locked');
       setTimeout(() => document.getElementById('pin-unlock-input').focus(), 100);
