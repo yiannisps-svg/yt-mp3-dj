@@ -45,6 +45,7 @@
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 12px;
+      gap: 8px;
     }
 
     .logo {
@@ -55,7 +56,13 @@
 
     .header-controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
+    }
+
+    .header-controls button {
+      padding: 8px 10px;
+      font-size: 0.88em;
+      min-height: 40px;
     }
 
     button {
@@ -313,11 +320,67 @@
       border-color: var(--accent-auto);
     }
 
-    /* Auto-DJ Timing Settings */
+    /* Settings Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 200;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.85);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 800;
+      font-size: 1.05em;
+    }
+
+    .modal-section {
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .modal-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 10px;
+      padding-bottom: 0;
+    }
+
+    .modal-section-title {
+      font-size: 0.85em;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
     .autodj-settings {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border);
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
@@ -357,6 +420,104 @@
       width: 20px !important;
       margin-top: -8px !important;
       background: var(--accent-auto) !important;
+    }
+
+    .pin-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.9em;
+    }
+
+    .pin-badge-on {
+      color: var(--accent-auto);
+      font-weight: 800;
+    }
+
+    .pin-badge-off {
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .pin-controls-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pin-controls-row input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 1em;
+      min-height: 44px;
+      letter-spacing: 3px;
+    }
+
+    .pin-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* PIN Lock Screen Overlay */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-main);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .lock-screen.locked {
+      display: flex;
+    }
+
+    .lock-card {
+      width: 100%;
+      max-width: 360px;
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+
+    .lock-title {
+      font-size: 1.2em;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .lock-sub {
+      font-size: 0.85em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .lock-card input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1.2em;
+      text-align: center;
+      letter-spacing: 6px;
+      margin-bottom: 12px;
+      min-height: 48px;
+    }
+
+    .lock-card button {
+      width: 100%;
     }
 
     /* Playlist Manager Box */
@@ -663,7 +824,7 @@
       border-radius: 20px;
       font-size: 0.85em;
       font-weight: 700;
-      z-index: 100;
+      z-index: 300;
       display: none;
       box-shadow: 0 4px 12px rgba(0,0,0,0.7);
       text-align: center;
@@ -673,11 +834,71 @@
 </head>
 <body>
 
+  <!-- PIN Lock Screen -->
+  <div class="lock-screen" id="pin-lock-screen">
+    <div class="lock-card">
+      <div class="lock-title">🔐 Κλείδωμα Εφαρμογής</div>
+      <div class="lock-sub">Πληκτρολόγησε το PIN για είσοδο</div>
+      <input type="password" inputmode="numeric" id="pin-unlock-input" maxlength="10" placeholder="••••"
+        onkeydown="if(event.key==='Enter') unlockWithPin()" />
+      <button class="btn-save-active" onclick="unlockWithPin()">🔓 Ξεκλείδωμα</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settings-modal" onclick="if(event.target===this) closeSettings()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>⚙️ Settings</span>
+        <button onclick="closeSettings()" style="min-height:36px; padding:6px 10px;">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">1. Χρονισμός Auto-DJ</div>
+        <div class="autodj-settings">
+          <div class="setting-box">
+            <div class="setting-header">
+              <span>Διάρκεια Mix</span>
+              <span class="setting-val" id="fade-dur-val">6s</span>
+            </div>
+            <input type="range" class="mini-slider" id="fade-dur-slider" min="2" max="15" value="6" oninput="updateAutoDJSettings()" />
+          </div>
+          <div class="setting-box">
+            <div class="setting-header">
+              <span>Πριν το τέλος</span>
+              <span class="setting-val" id="lead-time-val">8s</span>
+            </div>
+            <input type="range" class="mini-slider" id="lead-time-slider" min="2" max="20" value="8" oninput="updateAutoDJSettings()" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">2. PIN Κατά το Άνοιγμα</div>
+        <div class="pin-status-row">
+          <span>Κατάσταση PIN:</span>
+          <span id="pin-status-label" class="pin-badge-off">Ανενεργό</span>
+        </div>
+        <div class="pin-controls-row">
+          <input type="password" inputmode="numeric" id="pin-new-input" maxlength="10" placeholder="Νέο PIN (4-10 ψηφία)" />
+          <button class="btn-save-active" onclick="savePinSetting()">💾 Αποθήκευση</button>
+        </div>
+        <div class="pin-actions-row">
+          <button id="btn-lock-now" onclick="lockAppNow()" style="display:none;">🔒 Κλείδωμα Τώρα</button>
+          <button id="btn-disable-pin" class="btn-del" onclick="disablePinSetting()" style="display:none;">🗑️ Απενεργοποίηση PIN</button>
+        </div>
+      </div>
+
+      <button onclick="closeSettings()" style="width:100%;">Κλείσιμο Settings</button>
+    </div>
+  </div>
+
   <header>
     <div class="logo">🎧 YT-MP3 DJ</div>
     <div class="header-controls">
       <button onclick="changeFontScale(-0.15)" aria-label="Μικρότερα γράμματα">A-</button>
       <button onclick="changeFontScale(0.15)" aria-label="Μεγαλύτερα γράμματα">A+</button>
+      <button onclick="openSettings()" aria-label="Ρυθμίσεις">⚙️ Settings</button>
     </div>
   </header>
 
@@ -762,24 +983,6 @@
       <button class="btn-autodj" id="btn-autodj" onclick="toggleAutoDJ()">🤖 Auto-DJ: OFF</button>
       <button onclick="triggerAutoTransition()">⏭️ Mix Επόμενο</button>
     </div>
-
-    <!-- Auto-DJ Timing Settings -->
-    <div class="autodj-settings">
-      <div class="setting-box">
-        <div class="setting-header">
-          <span>Διάρκεια Mix</span>
-          <span class="setting-val" id="fade-dur-val">6s</span>
-        </div>
-        <input type="range" class="mini-slider" id="fade-dur-slider" min="2" max="15" value="6" oninput="updateAutoDJSettings()" />
-      </div>
-      <div class="setting-box">
-        <div class="setting-header">
-          <span>Πριν το τέλος</span>
-          <span class="setting-val" id="lead-time-val">8s</span>
-        </div>
-        <input type="range" class="mini-slider" id="lead-time-slider" min="2" max="20" value="8" oninput="updateAutoDJSettings()" />
-      </div>
-    </div>
   </div>
 
   <!-- ADD TRACKS -->
@@ -850,7 +1053,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v1.8.0 • Cue + YT Playlist';
+    const APP_VERSION = 'v1.9.0 • Settings & PIN';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     function hardReload() {
@@ -882,6 +1085,82 @@
       document.getElementById('lead-time-val').textContent = `${autoLeadSec}s`;
       localStorage.setItem('dj_fade_sec', autoFadeSec);
       localStorage.setItem('dj_lead_sec', autoLeadSec);
+    }
+
+    // --- PIN LOCK LOGIC ---
+    let savedPin = localStorage.getItem('dj_startup_pin') || '';
+
+    function refreshPinUI() {
+      const label = document.getElementById('pin-status-label');
+      const btnLock = document.getElementById('btn-lock-now');
+      const btnDisable = document.getElementById('btn-disable-pin');
+
+      if (savedPin) {
+        label.textContent = 'Ενεργό';
+        label.className = 'pin-badge-on';
+        btnLock.style.display = 'inline-flex';
+        btnDisable.style.display = 'inline-flex';
+      } else {
+        label.textContent = 'Ανενεργό';
+        label.className = 'pin-badge-off';
+        btnLock.style.display = 'none';
+        btnDisable.style.display = 'none';
+      }
+    }
+
+    function savePinSetting() {
+      const input = document.getElementById('pin-new-input');
+      const val = input.value.trim();
+      if (!/^\d{4,10}$/.test(val)) {
+        showToast('⚠️ Το PIN πρέπει να αποτελείται από 4 έως 10 ψηφία');
+        return;
+      }
+      savedPin = val;
+      localStorage.setItem('dj_startup_pin', savedPin);
+      input.value = '';
+      refreshPinUI();
+      showToast('🔐 Το PIN αποθηκεύτηκε για το άνοιγμα της εφαρμογής');
+    }
+
+    function disablePinSetting() {
+      if (!confirm('Να απενεργοποιηθεί το PIN κατά το άνοιγμα;')) return;
+      savedPin = '';
+      localStorage.removeItem('dj_startup_pin');
+      refreshPinUI();
+      showToast('🔓 Το PIN απενεργοποιήθηκε');
+    }
+
+    function lockAppNow() {
+      if (!savedPin) return;
+      closeSettings();
+      const lockScreen = document.getElementById('pin-lock-screen');
+      const unlockInput = document.getElementById('pin-unlock-input');
+      unlockInput.value = '';
+      lockScreen.classList.add('locked');
+      setTimeout(() => unlockInput.focus(), 80);
+    }
+
+    function unlockWithPin() {
+      const unlockInput = document.getElementById('pin-unlock-input');
+      if (unlockInput.value.trim() === savedPin) {
+        document.getElementById('pin-lock-screen').classList.remove('locked');
+        unlockInput.value = '';
+        showToast('🔓 Καλώς ήρθες');
+      } else {
+        unlockInput.value = '';
+        showToast('❌ Λάθος PIN');
+        unlockInput.focus();
+      }
+    }
+
+    function openSettings() {
+      refreshPinUI();
+      document.getElementById('pin-new-input').value = '';
+      document.getElementById('settings-modal').classList.add('open');
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-modal').classList.remove('open');
     }
 
     let autoDJ = false;
@@ -1882,6 +2161,11 @@
     }
 
     // Init
+    refreshPinUI();
+    if (savedPin) {
+      document.getElementById('pin-lock-screen').classList.add('locked');
+      setTimeout(() => document.getElementById('pin-unlock-input').focus(), 100);
+    }
     renderQueue();
     refreshPlaylistUI();
     queue.forEach(item => {
