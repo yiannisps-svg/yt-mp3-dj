@@ -200,6 +200,7 @@
       justify-content: center;
       gap: 6px;
       min-height: 44px;
+      flex-shrink: 0;
     }
 
     button:active {
@@ -391,6 +392,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      min-width: 0;
     }
 
     .vol-label {
@@ -506,14 +508,14 @@
 
     .mixer-actions {
       display: grid;
-      grid-template-columns: 1.15fr 1fr 0.95fr;
+      grid-template-columns: 1.05fr 1.25fr 0.85fr;
       gap: 6px;
       margin-top: 10px;
     }
 
     .mixer-actions button {
-      padding: 8px 6px;
-      font-size: 0.84em;
+      padding: 8px 4px;
+      font-size: 0.8em;
     }
 
     .btn-autodj.active {
@@ -681,6 +683,8 @@
 
     .pin-controls-row input {
       flex: 1;
+      min-width: 0;
+      width: 100%;
       background: var(--bg-input);
       border: 1px solid var(--border);
       color: var(--text-main);
@@ -688,6 +692,11 @@
       border-radius: 8px;
       font-size: 0.95em;
       min-height: 44px;
+    }
+
+    .pin-controls-row button {
+      padding: 10px 12px;
+      flex-shrink: 0;
     }
 
     .pin-actions-row {
@@ -722,6 +731,93 @@
       background: #500724;
       border-color: var(--accent-radio);
       color: #fbcfe8;
+    }
+
+    /* Drive Browser Modal */
+    .drive-nav-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+
+    .drive-nav-bar button {
+      min-height: 34px;
+      padding: 4px 10px;
+      font-size: 0.82em;
+    }
+
+    .drive-breadcrumb {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.82em;
+      font-weight: 800;
+      color: #bae6fd;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drive-browser-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 360px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .drive-entry {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .drive-entry.folder {
+      cursor: pointer;
+      border-left: 4px solid var(--accent-drive);
+    }
+
+    .drive-entry.folder:active {
+      background: #1e293b;
+    }
+
+    .drive-entry-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .drive-entry-title {
+      font-size: 0.88em;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drive-entry-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .drive-entry-actions button {
+      min-height: 34px;
+      min-width: 34px;
+      padding: 4px 8px;
+      font-size: 0.78em;
     }
 
     /* Backup Flags & Actions inside Settings */
@@ -850,6 +946,8 @@
 
     select {
       flex: 1;
+      min-width: 0;
+      width: 100%;
       background: var(--bg-input);
       color: var(--text-main);
       border: 1px solid var(--border);
@@ -936,6 +1034,8 @@
 
     input[type="text"] {
       flex: 1;
+      min-width: 0;
+      width: 100%;
       background: var(--bg-input);
       border: 1px solid var(--border);
       color: var(--text-main);
@@ -943,6 +1043,11 @@
       border-radius: 8px;
       font-size: 0.95em;
       min-height: 44px;
+    }
+
+    .input-row button {
+      padding: 10px 12px;
+      flex-shrink: 0;
     }
 
     .quick-btns {
@@ -1209,6 +1314,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 6px;
+      user-select: none;
       transition: transform 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
     }
 
@@ -1260,6 +1366,7 @@
     .q-info {
       flex: 1;
       min-width: 0;
+      cursor: pointer;
     }
 
     .q-badges {
@@ -1435,11 +1542,58 @@
     </div>
   </div>
 
+  <!-- Drive Folder & File Browser Modal -->
+  <div class="modal-backdrop" id="drive-browser-modal" onclick="if(event.target===this) closeDriveBrowser()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>☁️ Google Drive MP3 Browser</span>
+        <button onclick="closeDriveBrowser()" style="min-height:36px; padding:6px 10px;">✕</button>
+      </div>
+
+      <div class="drive-nav-bar">
+        <button id="btn-drive-back" onclick="navigateDriveBack()" disabled>⬅️ Πίσω</button>
+        <span class="drive-breadcrumb" id="drive-breadcrumb-text">YT-MP3-DJ-Data</span>
+        <button id="btn-drive-root-switch" onclick="switchDriveRootMode()" title="Αλλαγή μεταξύ Φακέλου Εφαρμογής & Όλου του Drive" style="font-size:0.74em; padding:4px 8px;">🌐 Όλο το Drive</button>
+      </div>
+
+      <div class="input-row" style="margin-bottom:8px;">
+        <input type="text" id="drive-filter-input" placeholder="🔎 Φίλτρο στον φάκελο..." oninput="renderDriveBrowserItems()" style="min-height:38px; padding:6px 10px; font-size:0.88em;" />
+      </div>
+
+      <div class="drive-browser-list" id="drive-browser-list"></div>
+
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <button class="btn-save-active" id="btn-drive-import-folder" onclick="importAllAudioInCurrentDriveFolder()" style="width:100%; display:none;">
+          📥 Εισαγωγή όλου του φακέλου (0 κομμάτια)
+        </button>
+        <button onclick="closeDriveBrowser()" style="width:100%;">Κλείσιμο</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Long-Press Track Action Modal (Move / Copy to List) -->
+  <div class="modal-backdrop" id="track-action-modal" onclick="if(event.target===this) closeTrackActionModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🎵 Ενέργεια Κομματιού</span>
+        <button onclick="closeTrackActionModal()" style="min-height:36px; padding:6px 10px;">✕</button>
+      </div>
+      <div id="track-action-title" style="font-size:0.9em; color:var(--accent-drive); font-weight:700; margin-bottom:12px; word-break:break-word;"></div>
+      <button class="list-picker-item btn-save-active" id="btn-track-move-to-list" onclick="executeTrackListTransfer('move')">
+        <span>📦 Μετακίνηση στη λίστα...</span><span>→</span>
+      </button>
+      <button class="list-picker-item btn-drive" onclick="executeTrackListTransfer('copy')">
+        <span>📋 Αντιγραφή στη λίστα...</span><span>→</span>
+      </button>
+      <button onclick="closeTrackActionModal()" style="width:100%; margin-top:6px;">Άκυρο</button>
+    </div>
+  </div>
+
   <!-- Target Playlist Selection Modal -->
   <div class="modal-backdrop" id="list-picker-modal" onclick="if(event.target===this) closeListPicker()">
     <div class="modal-card">
       <div class="modal-header">
-        <span>📂 Σε ποια λίστα να προστεθούν;</span>
+        <span id="list-picker-header-title">📂 Σε ποια λίστα να προστεθούν;</span>
         <button onclick="closeListPicker()" style="min-height:36px; padding:6px 10px;">✕</button>
       </div>
       <div id="list-picker-track-title" style="font-size:0.88em; color:var(--accent-auto); font-weight:700; margin-bottom:12px;"></div>
@@ -1518,7 +1672,7 @@
         </div>
         <div class="pin-controls-row">
           <input type="password" id="yt-api-key-input" placeholder="AIzaSy..." autocomplete="off" />
-          <button class="btn-save-active" onclick="saveYouTubeApiKeySetting()">💾 Αποθήκευση</button>
+          <button class="btn-save-active" onclick="saveYouTubeApiKeySetting()">💾 Save</button>
         </div>
         <div style="font-size:0.76em; color:var(--text-muted);">
           Αποθηκεύεται μόνο τοπικά στον browser (δεν ανεβαίνει στο GitHub).
@@ -1534,7 +1688,7 @@
         </div>
         <div class="pin-controls-row">
           <input type="password" inputmode="numeric" id="pin-new-input" maxlength="10" placeholder="Νέο PIN (4-10 ψηφία)" />
-          <button class="btn-save-active" onclick="savePinSetting()">💾 Αποθήκευση</button>
+          <button class="btn-save-active" onclick="savePinSetting()">💾 Save</button>
         </div>
         <div class="pin-actions-row">
           <button id="btn-lock-now" onclick="lockAppNow()" style="display:none;">🔒 Κλείδωμα Τώρα</button>
@@ -1615,7 +1769,7 @@
         <span id="time-a">00:00 / 00:00</span>
       </div>
       <div class="title-row">
-        <div class="track-title" id="title-a">Κενό Deck — Φόρτωσε από τη λίστα</div>
+        <div class="track-title" id="title-a">Empty Deck - Load Track</div>
         <button class="btn-similar-deck" id="sim-a" onclick="suggestSimilarForDeck('A')" title="Πρότεινέ μου παρόμοια">✨ Παρόμοια</button>
         <button class="btn-alt-deck" id="alt-a" onclick="searchAlternativeForDeck('A')">🔎 Βρες άλλο</button>
       </div>
@@ -1642,7 +1796,7 @@
         <span id="time-b">00:00 / 00:00</span>
       </div>
       <div class="title-row">
-        <div class="track-title" id="title-b">Κενό Deck — Φόρτωσε από τη λίστα</div>
+        <div class="track-title" id="title-b">Empty Deck - Load Track</div>
         <button class="btn-similar-deck" id="sim-b" onclick="suggestSimilarForDeck('B')" title="Πρότεινέ μου παρόμοια">✨ Παρόμοια</button>
         <button class="btn-alt-deck" id="alt-b" onclick="searchAlternativeForDeck('B')">🔎 Βρες άλλο</button>
       </div>
@@ -1673,7 +1827,7 @@
     <input type="range" id="crossfader" min="0" max="100" value="0" oninput="onCrossfade(this.value)" />
     <div class="mixer-actions">
       <button class="btn-autodj" id="btn-autodj" onclick="toggleAutoDJ()">🤖 Auto-DJ: OFF</button>
-      <button class="btn-radio" id="btn-radio-mode" onclick="toggleRadioMode()" disabled title="Ενεργοποιείται όταν το Auto-DJ είναι ON">📻 Radio: OFF</button>
+      <button class="btn-radio" id="btn-radio-mode" onclick="toggleRadioMode()" disabled title="Ενεργοποιείται όταν το Auto-DJ είναι ON">✨ Auto-Similar: OFF</button>
       <button onclick="triggerAutoTransition()">⏭️ Mix</button>
     </div>
   </div>
@@ -1690,7 +1844,7 @@
     <div class="input-row">
       <input type="text" id="yt-search-input" placeholder="🔍 Αναζήτηση τραγουδιού στο YouTube..."
         onkeydown="if(event.key==='Enter') executeInAppSearch()" />
-      <button id="btn-inapp-search" class="btn-drive" onclick="executeInAppSearch()">🔍 Αναζήτηση</button>
+      <button id="btn-inapp-search" class="btn-drive" onclick="executeInAppSearch()">🔍 Search</button>
     </div>
 
     <!-- Search & Similar Results Panel -->
@@ -1706,13 +1860,13 @@
     <div class="input-row" style="margin-top:8px;">
       <input type="text" id="yt-url-input" placeholder="YouTube link ή Radio Stream URL (mp3/aac)..."
         onkeydown="if(event.key==='Enter') addYouTubeFromInput()" />
-      <button onclick="addYouTubeFromInput()">+ Προσθήκη</button>
+      <button onclick="addYouTubeFromInput()">+ Add</button>
     </div>
     <div class="quick-btns">
       <button onclick="smartPaste()">📋 Paste</button>
       <button onclick="toggleBulkBox()">📥 Μαζικά</button>
       <button onclick="document.getElementById('mp3-picker').click()">📁 + MP3</button>
-      <button class="btn-drive" onclick="importDriveMP3s()">☁️ Drive MP3</button>
+      <button class="btn-drive" onclick="openDriveBrowser()">☁️ Drive MP3</button>
       <input type="file" id="mp3-picker" accept="audio/*" multiple style="display:none" onchange="handleMP3Files(this.files)" />
     </div>
 
@@ -1738,7 +1892,7 @@
       </select>
     </div>
     <div class="playlist-btns">
-      <button class="btn-save-active" id="btn-update-pl" onclick="updateActivePlaylist()" style="display:none;">💾 Ενημέρωση</button>
+      <button class="btn-save-active" id="btn-update-pl" onclick="updateActivePlaylist()" style="display:none;">💾 Save</button>
       <button onclick="createNewPlaylist()">➕ Νέα Λίστα</button>
       <button class="btn-history" id="btn-history-toggle" onclick="toggleHistoryView()">📜 History</button>
       <button class="btn-icon-only" id="btn-rename-pl" onclick="renameActivePlaylist()" title="Μετονομασία" style="display:none;">✏️</button>
@@ -1776,7 +1930,7 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v2.5.0 • 1Hand DJ & Live Radio Stations';
+    const APP_VERSION = 'v2.6.0 • Drive Browser, Empty New List & Long-Press Move/Copy';
     document.getElementById('app-version').textContent = APP_VERSION;
 
     // --- DEDICATED RADIO PLAYLIST CONSTANT ---
@@ -1814,7 +1968,6 @@
 
     function ensureDedicatedRadioPlaylist(mapObj) {
       if (!mapObj[RADIO_PLAYLIST_ID]) {
-        // Migrate if an older playlist with exact name exists
         const existingByName = Object.values(mapObj).find(p => p.name === RADIO_PLAYLIST_NAME);
         if (existingByName && existingByName.id !== RADIO_PLAYLIST_ID) {
           mapObj[RADIO_PLAYLIST_ID] = {
@@ -2248,39 +2401,186 @@
     });
     window.addEventListener('pagehide', flushCloudSyncOnExit);
 
-    async function importDriveMP3s() {
+    // --- DRIVE FOLDER & FILE BROWSER MODAL ---
+    let driveNavStack = []; // [{ id, name }]
+    let driveCurrentEntries = [];
+    let driveBrowseAllRoot = false;
+
+    async function openDriveBrowser() {
       if (!driveAccessToken) {
         showToast('🔐 Συνδέσου πρώτα στο Google Drive...');
         connectGoogleDrive(false);
         return;
       }
 
+      document.getElementById('drive-filter-input').value = '';
+      document.getElementById('drive-browser-modal').classList.add('open');
+
+      if (driveNavStack.length === 0) {
+        const appFolderId = await ensureDriveFolder();
+        driveBrowseAllRoot = false;
+        driveNavStack = [{ id: appFolderId, name: DRIVE_FOLDER_NAME }];
+      }
+      await loadDriveFolderContents();
+    }
+
+    function closeDriveBrowser() {
+      document.getElementById('drive-browser-modal').classList.remove('open');
+    }
+
+    async function switchDriveRootMode() {
+      driveBrowseAllRoot = !driveBrowseAllRoot;
+      const switchBtn = document.getElementById('btn-drive-root-switch');
+      if (driveBrowseAllRoot) {
+        driveNavStack = [{ id: 'root', name: 'My Drive' }];
+        switchBtn.textContent = '📁 Φάκελος App';
+      } else {
+        const appFolderId = await ensureDriveFolder();
+        driveNavStack = [{ id: appFolderId, name: DRIVE_FOLDER_NAME }];
+        switchBtn.textContent = '🌐 Όλο το Drive';
+      }
+      await loadDriveFolderContents();
+    }
+
+    async function navigateDriveBack() {
+      if (driveNavStack.length <= 1) return;
+      driveNavStack.pop();
+      await loadDriveFolderContents();
+    }
+
+    async function enterDriveSubfolder(folderId, folderName) {
+      driveNavStack.push({ id: folderId, name: folderName });
+      document.getElementById('drive-filter-input').value = '';
+      await loadDriveFolderContents();
+    }
+
+    async function loadDriveFolderContents() {
+      const listEl = document.getElementById('drive-browser-list');
+      const crumbEl = document.getElementById('drive-breadcrumb-text');
+      const backBtn = document.getElementById('btn-drive-back');
+      const importAllBtn = document.getElementById('btn-drive-import-folder');
+
+      const current = driveNavStack[driveNavStack.length - 1];
+      crumbEl.textContent = driveNavStack.map(n => n.name).join(' / ');
+      backBtn.disabled = driveNavStack.length <= 1;
+      importAllBtn.style.display = 'none';
+      listEl.innerHTML = '<div style="text-align:center; padding:18px; color:var(--text-muted); font-size:0.9em;">⏳ Φόρτωση περιεχομένων φακέλου...</div>';
+
       try {
-        showToast('☁️ Αναζήτηση MP3 στον φάκελο YT-MP3-DJ-Data...');
-        const folderId = await ensureDriveFolder();
-        const q = encodeURIComponent(`'${folderId}' in parents and (mimeType contains 'audio/' or fileExtension='mp3' or fileExtension='m4a' or fileExtension='wav' or fileExtension='ogg') and trashed=false`);
-        const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,size)&orderBy=name`);
+        const parentClause = `'${current.id}' in parents`;
+        const typeClause = `(mimeType='application/vnd.google-apps.folder' or mimeType contains 'audio/' or fileExtension='mp3' or fileExtension='m4a' or fileExtension='wav' or fileExtension='ogg')`;
+        const q = encodeURIComponent(`${parentClause} and ${typeClause} and trashed=false`);
+        const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType,size)&orderBy=folder,name&pageSize=200`;
+
+        const res = await driveFetch(url);
+        if (!res.ok) throw new Error('Drive API Error');
         const data = await res.json();
 
-        if (!data.files || data.files.length === 0) {
-          showToast('📂 Ο φάκελος YT-MP3-DJ-Data στο Drive δεν έχει ακόμα αρχεία ήχου');
-          return;
-        }
-
-        const newTracks = data.files.map(file => ({
-          source: 'drive_mp3',
-          uri: file.id,
-          title: file.name.replace(/\.[^/.]+$/, ''),
-          cueIn: 0,
-          cueOut: 0,
-          embedStatus: 'ok',
-          played: false
+        driveCurrentEntries = (data.files || []).map(f => ({
+          id: f.id,
+          name: f.name,
+          isFolder: f.mimeType === 'application/vnd.google-apps.folder',
+          cleanTitle: f.name.replace(/\.[^/.]+$/, '')
         }));
 
-        openListPickerForTracks(newTracks, `☁️ ${newTracks.length} MP3 από Google Drive`);
+        renderDriveBrowserItems();
       } catch (err) {
-        if (err.message !== 'TOKEN_EXPIRED') showToast('❌ Σφάλμα ανάγνωσης MP3 από το Drive');
+        if (err.message !== 'TOKEN_EXPIRED') {
+          listEl.innerHTML = '<div style="text-align:center; padding:16px; color:#fca5a5; font-size:0.88em;">❌ Σφάλμα ανάγνωσης φακέλου Drive</div>';
+        }
       }
+    }
+
+    function renderDriveBrowserItems() {
+      const listEl = document.getElementById('drive-browser-list');
+      const importAllBtn = document.getElementById('btn-drive-import-folder');
+      const filterText = document.getElementById('drive-filter-input').value.trim().toLowerCase();
+
+      const filtered = driveCurrentEntries.filter(e => !filterText || e.name.toLowerCase().includes(filterText));
+      const audioOnly = filtered.filter(e => !e.isFolder);
+
+      if (audioOnly.length > 0) {
+        importAllBtn.style.display = 'inline-flex';
+        importAllBtn.textContent = `📥 Εισαγωγή όλου του φακέλου (${audioOnly.length} κομμάτια)`;
+      } else {
+        importAllBtn.style.display = 'none';
+      }
+
+      listEl.innerHTML = '';
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center; padding:18px; color:var(--text-muted); font-size:0.88em;">Δεν βρέθηκαν φάκελοι ή αρχεία ήχου</div>';
+        return;
+      }
+
+      filtered.forEach(entry => {
+        const row = document.createElement('div');
+        if (entry.isFolder) {
+          row.className = 'drive-entry folder';
+          row.onclick = () => enterDriveSubfolder(entry.id, entry.name);
+          row.innerHTML = `
+            <div class="drive-entry-info">
+              <span>📁</span>
+              <span class="drive-entry-title">${entry.name}</span>
+            </div>
+            <span style="color:var(--text-muted); font-weight:800;">→</span>
+          `;
+        } else {
+          row.className = 'drive-entry';
+          row.innerHTML = `
+            <div class="drive-entry-info">
+              <span>🎵</span>
+              <span class="drive-entry-title" title="${entry.cleanTitle}">${entry.cleanTitle}</span>
+            </div>
+            <div class="drive-entry-actions">
+              <button class="btn-deck-a" onclick="playDriveEntryOnDeck('${entry.id}', 'A')">→A</button>
+              <button class="btn-deck-b" onclick="playDriveEntryOnDeck('${entry.id}', 'B')">→B</button>
+              <button class="btn-save-active" onclick="addSingleDriveEntryToList('${entry.id}')">+</button>
+            </div>
+          `;
+        }
+        listEl.appendChild(row);
+      });
+    }
+
+    function buildTrackFromDriveEntry(entry) {
+      return {
+        source: 'drive_mp3',
+        uri: entry.id,
+        title: entry.cleanTitle,
+        cueIn: 0,
+        cueOut: 0,
+        embedStatus: 'ok',
+        played: false
+      };
+    }
+
+    function playDriveEntryOnDeck(fileId, deckId) {
+      const entry = driveCurrentEntries.find(e => e.id === fileId && !e.isFolder);
+      if (!entry) return;
+      const track = buildTrackFromDriveEntry(entry);
+      const shouldStart = getDeckDefaultAutoStart(deckId);
+      closeDriveBrowser();
+      loadTrackToDeck(deckId, track, shouldStart);
+    }
+
+    function addSingleDriveEntryToList(fileId) {
+      const entry = driveCurrentEntries.find(e => e.id === fileId && !e.isFolder);
+      if (!entry) return;
+      const track = buildTrackFromDriveEntry(entry);
+      closeDriveBrowser();
+      openListPickerForTracks([track], `☁️ ${track.title}`, 'add');
+    }
+
+    function importAllAudioInCurrentDriveFolder() {
+      const filterText = document.getElementById('drive-filter-input').value.trim().toLowerCase();
+      const audioEntries = driveCurrentEntries.filter(e => !e.isFolder && (!filterText || e.name.toLowerCase().includes(filterText)));
+      if (audioEntries.length === 0) return;
+
+      const tracks = audioEntries.map(buildTrackFromDriveEntry);
+      const folderName = driveNavStack[driveNavStack.length - 1]?.name || 'Drive';
+      closeDriveBrowser();
+      openListPickerForTracks(tracks, `☁️ ${folderName} (${tracks.length} κομμάτια)`, 'add');
     }
 
     async function fetchDriveAudioBlobUrl(fileId, title) {
@@ -2325,7 +2625,6 @@
     let listFilterQuery = '';
     let currentSearchMode = 'youtube'; // 'youtube' | 'radio'
 
-    // Session played URIs (to prevent Radio / Auto-Fill loops)
     const sessionPlayedUris = new Set();
 
     // --- SEARCH MODE TABS (YOUTUBE VS RADIO STATIONS) ---
@@ -2341,13 +2640,13 @@
         tabRadio.className = 'tab-active-radio';
         inp.placeholder = '📻 Αναζήτηση σταθμού (π.χ. Greece, Athens, Rock, Ελληνικά)...';
         btn.className = 'btn-radio-search';
-        btn.textContent = '📻 Σταθμοί';
+        btn.textContent = '📻 Search';
       } else {
         tabYt.className = 'tab-active-yt';
         tabRadio.className = '';
         inp.placeholder = '🔍 Αναζήτηση τραγουδιού στο YouTube...';
         btn.className = 'btn-drive';
-        btn.textContent = '🔍 Αναζήτηση';
+        btn.textContent = '🔍 Search';
       }
       closeSearchResults();
     }
@@ -2374,7 +2673,6 @@
       listEl.innerHTML = '';
 
       try {
-        // Use Radio Browser open API (by name, or top Greek stations if empty/Greece)
         let apiUrl = '';
         if (!query || /^(greece|ελλαδα|ελλάδα|greek|ελληνικα|ελληνικά)$/i.test(query)) {
           apiUrl = `https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/GR?limit=20&order=clickcount&reverse=true&hidebroken=true`;
@@ -2386,14 +2684,12 @@
         if (!res.ok) throw new Error('Σφάλμα σύνδεσης με κατάλογο σταθμών');
         let stations = await res.json();
 
-        // Fallback to tag search if name returned nothing
         if ((!stations || stations.length === 0) && query) {
           const tagUrl = `https://de1.api.radio-browser.info/json/stations/bytag/${encodeURIComponent(query.toLowerCase())}?limit=18&order=clickcount&reverse=true&hidebroken=true`;
           const tagRes = await fetch(tagUrl);
           if (tagRes.ok) stations = await tagRes.json();
         }
 
-        // Filter out HLS .m3u8 streams that don't play natively in Chrome/Android <audio> without hls.js
         const validStations = (stations || []).filter(st => {
           const u = (st.url_resolved || st.url || '').toLowerCase();
           return u && !u.includes('.m3u8');
@@ -2495,6 +2791,8 @@
     // --- IN-APP YOUTUBE SEARCH & POPULAR SIMILAR ENGINE ---
     let lastSearchResults = [];
     let pendingListPickerTracks = [];
+    let pendingListPickerMode = 'add'; // 'add' | 'copy' | 'move'
+    let pendingMoveSourceIndex = null;
 
     function formatViews(countStr) {
       const n = Number(countStr);
@@ -2792,36 +3090,78 @@
       showToast(shouldStart ? `▶️ Deck ${deckId}: ${track.title}` : `⏸️ Φορτώθηκε στο Deck ${deckId} (Έτοιμο)`);
     }
 
+    // --- LONG-PRESS TRACK MENU (MOVE / COPY TO LIST) ---
+    let longPressTargetIndex = null;
+
+    function openTrackActionModal(idx) {
+      const srcList = viewingHistory ? ytHistory : queue;
+      const item = srcList[idx];
+      if (!item) return;
+
+      longPressTargetIndex = idx;
+      document.getElementById('track-action-title').textContent = item.title;
+      // Moving only makes sense when viewing an actual queue/playlist (not History)
+      document.getElementById('btn-track-move-to-list').style.display = viewingHistory ? 'none' : 'flex';
+      document.getElementById('track-action-modal').classList.add('open');
+    }
+
+    function closeTrackActionModal() {
+      document.getElementById('track-action-modal').classList.remove('open');
+      longPressTargetIndex = null;
+    }
+
+    function executeTrackListTransfer(actionMode) {
+      if (longPressTargetIndex === null) return;
+      const idx = longPressTargetIndex;
+      const srcList = viewingHistory ? ytHistory : queue;
+      const item = srcList[idx];
+      closeTrackActionModal();
+      if (!item) return;
+
+      const cleanTrack = { ...item, played: false };
+      openListPickerForTracks([cleanTrack], item.title, actionMode, idx);
+    }
+
     // --- TARGET PLAYLIST PICKER ---
     function openListPickerForSearchResult(idx) {
       const res = lastSearchResults[idx];
       if (!res) return;
       const track = buildTrackFromSearchResult(res);
-      openListPickerForTracks([track], res.resultType === 'radio' ? `📻 ${res.title}` : `🎵 ${res.title}`);
+      openListPickerForTracks([track], res.resultType === 'radio' ? `📻 ${res.title}` : `🎵 ${res.title}`, 'add');
     }
 
-    function openListPickerForTracks(tracksArray, headerLabel) {
+    function openListPickerForTracks(tracksArray, headerLabel, mode = 'add', moveSourceIdx = null) {
       if (!tracksArray || tracksArray.length === 0) return;
       pendingListPickerTracks = tracksArray;
+      pendingListPickerMode = mode;
+      pendingMoveSourceIndex = moveSourceIdx;
 
       const isRadioBundle = tracksArray.every(t => t.source === 'radio');
+
+      const headerTitleEl = document.getElementById('list-picker-header-title');
+      if (mode === 'move') headerTitleEl.textContent = '📦 Μετακίνηση σε ποια λίστα;';
+      else if (mode === 'copy') headerTitleEl.textContent = '📋 Αντιγραφή σε ποια λίστα;';
+      else headerTitleEl.textContent = '📂 Σε ποια λίστα να προστεθούν;';
 
       document.getElementById('list-picker-track-title').textContent = headerLabel || `🎵 ${tracksArray.length} κομμάτια`;
       const optionsBox = document.getElementById('list-picker-options');
       optionsBox.innerHTML = '';
 
-      // If adding radio stations, put the dedicated Radio Stations playlist right at the top!
       if (isRadioBundle && savedPlaylists[RADIO_PLAYLIST_ID]) {
         const radioPl = savedPlaylists[RADIO_PLAYLIST_ID];
-        const btnRadio = document.createElement('button');
-        btnRadio.className = 'list-picker-item btn-save-active';
-        btnRadio.innerHTML = `<span>${radioPl.name} (Προτεινόμενη)</span><span>(${radioPl.items.length})</span>`;
-        btnRadio.onclick = () => addPendingTracksToTargetList(RADIO_PLAYLIST_ID);
-        optionsBox.appendChild(btnRadio);
+        if (!(mode === 'move' && activePlaylistId === RADIO_PLAYLIST_ID)) {
+          const btnRadio = document.createElement('button');
+          btnRadio.className = 'list-picker-item btn-save-active';
+          btnRadio.innerHTML = `<span>${radioPl.name} (Προτεινόμενη)</span><span>(${radioPl.items.length})</span>`;
+          btnRadio.onclick = () => addPendingTracksToTargetList(RADIO_PLAYLIST_ID);
+          optionsBox.appendChild(btnRadio);
+        }
       }
 
       Object.values(savedPlaylists).forEach(pl => {
         if (isRadioBundle && pl.id === RADIO_PLAYLIST_ID) return;
+        // Skip current playlist when moving
+        if (mode === 'move' && pl.id === activePlaylistId) return;
         const isCurrent = pl.id === activePlaylistId;
         const btn = document.createElement('button');
         btn.className = (!isRadioBundle && isCurrent) ? 'list-picker-item btn-save-active' : 'list-picker-item';
@@ -2831,7 +3171,7 @@
         optionsBox.appendChild(btn);
       });
 
-      if (!activePlaylistId) {
+      if (!activePlaylistId && mode !== 'move') {
         const btnDraft = document.createElement('button');
         btnDraft.className = (!isRadioBundle) ? 'list-picker-item btn-save-active' : 'list-picker-item';
         btnDraft.innerHTML = `<span>📝 Πρόχειρη Λίστα (Τρέχουσα ουρά)</span><span>(${queue.length})</span>`;
@@ -2862,11 +3202,17 @@
     function closeListPicker() {
       document.getElementById('list-picker-modal').classList.remove('open');
       pendingListPickerTracks = [];
+      pendingListPickerMode = 'add';
+      pendingMoveSourceIndex = null;
     }
 
     function addPendingTracksToTargetList(targetId) {
       if (!pendingListPickerTracks || pendingListPickerTracks.length === 0) return;
       const incoming = pendingListPickerTracks.map(t => ({ ...t, played: false }));
+      const mode = pendingListPickerMode;
+      const moveIdx = pendingMoveSourceIndex;
+
+      let targetName = 'Πρόχειρη Λίστα';
 
       if (targetId === '__DRAFT__') {
         if (viewingHistory) toggleHistoryView(false);
@@ -2877,8 +3223,8 @@
         localStorage.setItem('dj_active_queue', JSON.stringify(getCleanQueueCopy()));
         renderQueue();
         scheduleDrivePush();
-        showToast(`✅ Προστέθηκαν ${incoming.length} στην Πρόχειρη Λίστα`);
       } else if (savedPlaylists[targetId]) {
+        targetName = savedPlaylists[targetId].name;
         const cleanIncoming = incoming.map(({ objectUrl, _timeout, played, ...rest }) => rest);
         savedPlaylists[targetId].items.push(...cleanIncoming);
         savedPlaylists[targetId].updatedAt = new Date().toISOString();
@@ -2894,7 +3240,18 @@
         }
         refreshPlaylistUI();
         scheduleDrivePush();
-        showToast(`✅ Προστέθηκαν (${incoming.length}) στη λίστα "${savedPlaylists[targetId].name}"!`);
+      }
+
+      // If Move mode, remove from current source queue/playlist
+      if (mode === 'move' && moveIdx !== null && moveIdx >= 0 && moveIdx < queue.length) {
+        queue.splice(moveIdx, 1);
+        saveQueueAndSyncPlaylist();
+        renderQueue();
+        showToast(`📦 Μετακινήθηκε στη λίστα "${targetName}"!`);
+      } else if (mode === 'copy') {
+        showToast(`📋 Αντιγράφηκε στη λίστα "${targetName}"!`);
+      } else {
+        showToast(`✅ Προστέθηκαν (${incoming.length}) στη λίστα "${targetName}"!`);
       }
 
       closeListPicker();
@@ -3534,7 +3891,6 @@
       }
       d.audioEl.pause();
       if (d.source === 'radio') {
-        // Release live stream connection cleanly
         d.audioEl.removeAttribute('src');
         d.audioEl.load();
       } else {
@@ -3566,7 +3922,6 @@
         if (d.playing) {
           d.audioEl.pause();
         } else {
-          // Reconnect live edge cleanly on resume
           d.audioEl.src = d.track.uri;
           d.audioEl.play().catch(() => showToast('❌ Αδυναμία σύνδεσης στον σταθμό'));
         }
@@ -3619,7 +3974,7 @@
       decks.B.audioEl.volume = finalB / 100;
     }
 
-    // --- AUTO-DJ, RADIO MODE & AUTO-FILL ENGINE ---
+    // --- AUTO-DJ, AUTO-SIMILAR & AUTO-FILL ENGINE ---
     function getSeedTrackForSimilar(preferredDeckId) {
       const otherId = preferredDeckId === 'A' ? 'B' : 'A';
       if (decks[otherId].track && decks[otherId].track.source !== 'radio') return decks[otherId].track;
@@ -3668,24 +4023,21 @@
     }
 
     async function prepareNextAutoDJTrackForDeck(targetDeckId, autoPlay) {
-      // 1. Radio Mode ON -> Always play popular similar tracks WITHOUT pulling from queue
       if (autoDJ && radioMode) {
         const seed = getSeedTrackForSimilar(targetDeckId);
         const radioTrack = await fetchOneRadioTrack(seed);
         if (radioTrack) {
           await loadTrackToDeck(targetDeckId, radioTrack, autoPlay);
-          showToast(`📻 Radio: ${radioTrack.title}`);
+          showToast(`✨ Auto-Similar: ${radioTrack.title}`);
           return true;
         }
         return false;
       }
 
-      // 2. Normal Queue Mode -> Pull next unplayed non-radio track from queue
       if (loadNextUnplayedToDeck(targetDeckId, autoPlay)) {
         return true;
       }
 
-      // 3. Queue exhausted while Auto-DJ is ON -> Auto-Fill queue with 5 popular similar tracks!
       if (autoDJ) {
         const seed = getSeedTrackForSimilar(targetDeckId);
         const filled = await autoFillQueueWithSimilar(seed);
@@ -3706,18 +4058,18 @@
 
       radioMode = !radioMode;
       const btn = document.getElementById('btn-radio-mode');
-      btn.textContent = radioMode ? '📻 Radio: ON' : '📻 Radio: OFF';
+      btn.textContent = radioMode ? '✨ Auto-Similar: ON' : '✨ Auto-Similar: OFF';
       btn.classList.toggle('active', radioMode);
 
       if (radioMode) {
-        showToast('📻 Radio ON: Παίζει συνεχώς δημοφιλή παρόμοια εκτός λίστας');
+        showToast('✨ Auto-Similar ON: Παίζει συνεχώς δημοφιλή παρόμοια εκτός λίστας');
         const activeId = crossfadeValue < 50 ? 'A' : 'B';
         const standbyId = activeId === 'A' ? 'B' : 'A';
         if (!decks[standbyId].playing) {
           prepareNextAutoDJTrackForDeck(standbyId, false);
         }
       } else {
-        showToast('📻 Radio OFF: Επιστροφή στη σειρά της λίστας');
+        showToast('✨ Auto-Similar OFF: Επιστροφή στη σειρά της λίστας');
       }
     }
 
@@ -3737,7 +4089,7 @@
 
       if (!autoDJ) {
         radioMode = false;
-        radioBtn.textContent = '📻 Radio: OFF';
+        radioBtn.textContent = '✨ Auto-Similar: OFF';
         radioBtn.classList.remove('active');
         return;
       }
@@ -3803,7 +4155,7 @@
               decks[fromId].track = null;
               decks[fromId].source = null;
               document.getElementById(`card-${fromId.toLowerCase()}`).classList.remove('live-radio-mode');
-              document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
+              document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Empty Deck - Load Track';
               document.getElementById(`sim-${fromId.toLowerCase()}`).style.display = 'none';
               document.getElementById(`alt-${fromId.toLowerCase()}`).style.display = 'none';
               updateDeckCueButtons(fromId);
@@ -3812,7 +4164,7 @@
             decks[fromId].track = null;
             decks[fromId].source = null;
             document.getElementById(`card-${fromId.toLowerCase()}`).classList.remove('live-radio-mode');
-            document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
+            document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Empty Deck - Load Track';
             document.getElementById(`sim-${fromId.toLowerCase()}`).style.display = 'none';
             document.getElementById(`alt-${fromId.toLowerCase()}`).style.display = 'none';
             updateDeckCueButtons(fromId);
@@ -3941,7 +4293,7 @@
           return false;
         }
 
-        openListPickerForTracks(collected, `📋 YouTube Playlist (${collected.length} τραγούδια)`);
+        openListPickerForTracks(collected, `📋 YouTube Playlist (${collected.length} τραγούδια)`, 'add');
         return true;
       } catch (err) {
         console.error(err);
@@ -3978,11 +4330,10 @@
         if (directUrl === null) input.value = '';
         showToast('Έλεγχος κομματιού...');
         const item = await buildSingleVideoTrack(videoId);
-        openListPickerForTracks([item], `🎵 ${item.title}`);
+        openListPickerForTracks([item], `🎵 ${item.title}`, 'add');
         return;
       }
 
-      // Check if it is a direct Radio Stream URL (e.g., https://.../stream.mp3)
       if (isDirectRadioStreamUrl(url)) {
         let defaultName = 'Live Radio Station';
         try {
@@ -4002,7 +4353,7 @@
           embedStatus: 'ok',
           played: false
         };
-        openListPickerForTracks([radioItem], `📻 ${radioItem.title}`);
+        openListPickerForTracks([radioItem], `📻 ${radioItem.title}`, 'add');
         return;
       }
 
@@ -4046,7 +4397,7 @@
       for (const id of uniqueIds) {
         builtTracks.push(await buildSingleVideoTrack(id));
       }
-      openListPickerForTracks(builtTracks, `📥 Μαζική Εισαγωγή (${builtTracks.length} τραγούδια)`);
+      openListPickerForTracks(builtTracks, `📥 Μαζική Εισαγωγή (${builtTracks.length} τραγούδια)`, 'add');
     }
 
     function handleMP3Files(files) {
@@ -4066,11 +4417,10 @@
           played: false
         };
       });
-      openListPickerForTracks(mp3Tracks, `📁 ${mp3Tracks.length} τοπικά αρχεία MP3`);
+      openListPickerForTracks(mp3Tracks, `📁 ${mp3Tracks.length} τοπικά αρχεία MP3`, 'add');
     }
 
     function loadNextUnplayedToDeck(id, autoPlay) {
-      // Skip live radio stations during sequential Auto-DJ queue playback
       const nextIdx = queue.findIndex(item => !item.played && item.embedStatus !== 'blocked' && item.source !== 'radio');
       if (nextIdx === -1) return false;
       queue[nextIdx].played = true;
@@ -4101,7 +4451,7 @@
     function addHistoryItemToList(index) {
       const hItem = ytHistory[index];
       if (!hItem) return;
-      openListPickerForTracks([{ ...hItem, played: false }], `📜 ${hItem.title}`);
+      openListPickerForTracks([{ ...hItem, played: false }], `📜 ${hItem.title}`, 'add');
     }
 
     function reorderQueue(fromIdx, toIdx) {
@@ -4165,7 +4515,7 @@
       scheduleDrivePush();
     }
 
-    // --- DRAG & DROP ---
+    // --- DRAG & DROP + LONG-PRESS (MOVE / COPY TO LIST) ---
     let dragSourceIndex = null;
 
     function initExternalListDropZone() {
@@ -4200,6 +4550,68 @@
             await addYouTubeFromInput(droppedText.trim());
           }
         }
+      });
+    }
+
+    function attachLongPressHandlers(li, idx) {
+      const infoArea = li.querySelector('.q-info');
+      if (!infoArea) return;
+
+      let pressTimer = null;
+      let startX = 0;
+      let startY = 0;
+
+      const cancelPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+
+      const startPress = (x, y) => {
+        cancelPress();
+        startX = x;
+        startY = y;
+        pressTimer = setTimeout(() => {
+          pressTimer = null;
+          if (navigator.vibrate) {
+            try { navigator.vibrate(35); } catch (e) {}
+          }
+          openTrackActionModal(idx);
+        }, 520);
+      };
+
+      // Mobile touch long-press on track info
+      infoArea.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) {
+          startPress(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: true });
+
+      infoArea.addEventListener('touchmove', (e) => {
+        if (!pressTimer || !e.touches || !e.touches.length) return;
+        const dx = Math.abs(e.touches[0].clientX - startX);
+        const dy = Math.abs(e.touches[0].clientY - startY);
+        if (dx > 10 || dy > 10) cancelPress();
+      }, { passive: true });
+
+      infoArea.addEventListener('touchend', cancelPress);
+      infoArea.addEventListener('touchcancel', cancelPress);
+
+      // Desktop mouse long-press or right-click contextmenu on track info
+      infoArea.addEventListener('mousedown', (e) => {
+        if (e.button === 0) startPress(e.clientX, e.clientY);
+      });
+      infoArea.addEventListener('mousemove', (e) => {
+        if (!pressTimer) return;
+        if (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8) cancelPress();
+      });
+      infoArea.addEventListener('mouseup', cancelPress);
+      infoArea.addEventListener('mouseleave', cancelPress);
+      infoArea.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        cancelPress();
+        openTrackActionModal(idx);
       });
     }
 
@@ -4343,14 +4755,14 @@
 
         li.innerHTML = `
           ${dragHandleHtml}
-          <div class="q-info">
+          <div class="q-info" title="Κράτα πατημένο για Μετακίνηση / Αντιγραφή σε λίστα">
             <div class="q-badges">
               ${sourceTagHtml}
               ${statusBadge}
               ${cueBadge}
               ${playedBadge}
             </div>
-            <span class="q-title" title="${safeTitle}">${item.title}</span>
+            <span class="q-title">${item.title}</span>
           </div>
           <div class="q-actions">
             ${historyAddBtn}
@@ -4364,6 +4776,7 @@
           </div>
         `;
         attachItemDragHandlers(li, idx);
+        attachLongPressHandlers(li, idx);
         list.appendChild(li);
       });
     }
@@ -4379,7 +4792,6 @@
 
       sel.innerHTML = '<option value="">-- Πρόχειρη Λίστα (Χωρίς όνομα) --</option>';
 
-      // Put Dedicated Radio Stations playlist first for quick 1-hand access
       const orderedPlaylists = Object.values(savedPlaylists).sort((a, b) => {
         if (a.id === RADIO_PLAYLIST_ID) return -1;
         if (b.id === RADIO_PLAYLIST_ID) return 1;
@@ -4417,26 +4829,33 @@
       }
     }
 
+    // Creates a clean EMPTY playlist without interrupting active Deck playback
     function createNewPlaylist() {
-      const name = prompt('Όνομα νέας Playlist:');
+      const name = prompt('Όνομα νέας κενής Playlist:');
       if (!name || !name.trim()) return;
       const cleanName = name.trim();
 
       if (viewingHistory) toggleHistoryView(false);
+      clearListFilter();
+
       const id = generatePlaylistId();
       savedPlaylists[id] = {
         id,
         name: cleanName,
         updatedAt: new Date().toISOString(),
-        items: getCleanQueueCopy()
+        items: []
       };
       activePlaylistId = id;
+      queue = [];
+
       localStorage.setItem('dj_saved_playlists', JSON.stringify(savedPlaylists));
       localStorage.setItem('dj_active_pl_id', activePlaylistId);
+      localStorage.setItem('dj_active_queue', '[]');
 
+      renderQueue();
       refreshPlaylistUI();
       scheduleDrivePush();
-      showToast(`✅ Δημιουργήθηκε: "${cleanName}"`);
+      showToast(`✅ Δημιουργήθηκε νέα κενή λίστα: "${cleanName}"`);
     }
 
     function renameActivePlaylist() {
@@ -4667,7 +5086,6 @@
 
         Object.values(importedMap).forEach(impPl => {
           if (impPl.id === RADIO_PLAYLIST_ID) {
-            // Merge radio stations cleanly without duplicating URIs
             const existingUris = new Set(savedPlaylists[RADIO_PLAYLIST_ID].items.map(i => i.uri));
             const freshStations = (impPl.items || []).filter(i => !existingUris.has(i.uri));
             savedPlaylists[RADIO_PLAYLIST_ID].items.push(...freshStations);
