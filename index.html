@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>YT-MP3 Mobile DJ</title>
+  <title>1Hand DJ</title>
 
   <!-- PWA Fullscreen / Standalone Support (Single-file inline manifest) -->
   <meta name="theme-color" content="#09090b" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="YT-MP3 DJ" />
+  <meta name="apple-mobile-web-app-title" content="1Hand DJ" />
   <link id="pwa-manifest" rel="manifest" />
   <script>
     (function () {
@@ -18,8 +18,8 @@
         "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='#09090b'/><text x='50' y='68' font-size='56' text-anchor='middle'>🎧</text></svg>"
       );
       const manifest = {
-        name: "YT-MP3 Mobile DJ",
-        short_name: "YT-MP3 DJ",
+        name: "1Hand DJ",
+        short_name: "1Hand DJ",
         start_url: window.location.href.split('?')[0],
         display: "standalone",
         background_color: "#09090b",
@@ -279,6 +279,19 @@
     .badge-a { color: var(--accent-a); }
     .badge-b { color: var(--accent-b); }
 
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #450a0a;
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 0.88em;
+      font-weight: 900;
+    }
+
     .title-row {
       display: flex;
       align-items: center;
@@ -458,6 +471,12 @@
       border-color: var(--accent-auto);
       background: #064e3b;
       color: #a7f3d0;
+    }
+
+    /* Hide Seek & Cue Controls in Live Radio Mode */
+    .deck.live-radio-mode .seek-slider,
+    .deck.live-radio-mode .cue-row {
+      display: none !important;
     }
 
     /* Mixer / Crossfader */
@@ -699,6 +718,12 @@
       color: #e0f2fe;
     }
 
+    .btn-radio-search {
+      background: #500724;
+      border-color: var(--accent-radio);
+      color: #fbcfe8;
+    }
+
     /* Backup Flags & Actions inside Settings */
     .backup-flags-row {
       display: grid;
@@ -878,6 +903,31 @@
       margin-bottom: 12px;
     }
 
+    .search-mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .search-mode-tabs button {
+      min-height: 36px;
+      padding: 6px 8px;
+      font-size: 0.84em;
+    }
+
+    .search-mode-tabs button.tab-active-yt {
+      background: #0c4a6e;
+      border-color: var(--accent-drive);
+      color: #e0f2fe;
+    }
+
+    .search-mode-tabs button.tab-active-radio {
+      background: #500724;
+      border-color: var(--accent-radio);
+      color: #fbcfe8;
+    }
+
     .input-row {
       display: flex;
       gap: 8px;
@@ -906,7 +956,7 @@
       font-size: 0.8em;
     }
 
-    /* YouTube In-App Search & Similar Results */
+    /* YouTube & Radio In-App Search Results */
     .yt-search-results {
       display: none;
       margin-top: 10px;
@@ -956,6 +1006,26 @@
       object-fit: cover;
       background: #000;
       flex-shrink: 0;
+    }
+
+    .sr-radio-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      background: #18181b;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sr-radio-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .sr-meta {
@@ -1010,6 +1080,12 @@
       background: #064e3b;
       border-color: var(--accent-auto);
       color: #a7f3d0;
+    }
+
+    .sr-badge.radio {
+      background: #500724;
+      border-color: var(--accent-radio);
+      color: #fbcfe8;
     }
 
     .sr-badge.blocked {
@@ -1160,6 +1236,10 @@
       border-left: 4px solid var(--accent-hist);
     }
 
+    .queue-item.radio-station-item {
+      border-left: 4px solid var(--accent-radio);
+    }
+
     .drag-handle {
       cursor: grab;
       color: var(--text-muted);
@@ -1205,6 +1285,11 @@
     .q-tag.mp3-tag {
       background: #3f3f46;
       color: #f4f4f5;
+    }
+
+    .q-tag.radio-tag {
+      background: #500724;
+      color: #fbcfe8;
     }
 
     .q-cue-tag {
@@ -1342,7 +1427,7 @@
   <!-- PIN Lock Screen -->
   <div class="lock-screen" id="pin-lock-screen">
     <div class="lock-card">
-      <div class="lock-title">🔐 Κλείδωμα Εφαρμογής</div>
+      <div class="lock-title">🔐 Κλείδωμα 1Hand DJ</div>
       <div class="lock-sub">Πληκτρολόγησε το PIN για είσοδο</div>
       <input type="password" inputmode="numeric" id="pin-unlock-input" maxlength="10" placeholder="••••"
         onkeydown="if(event.key==='Enter') unlockWithPin()" />
@@ -1350,7 +1435,7 @@
     </div>
   </div>
 
-  <!-- Target Playlist Selection Modal (Used on EVERY track addition) -->
+  <!-- Target Playlist Selection Modal -->
   <div class="modal-backdrop" id="list-picker-modal" onclick="if(event.target===this) closeListPicker()">
     <div class="modal-card">
       <div class="modal-header">
@@ -1390,7 +1475,7 @@
   <div class="modal-backdrop" id="settings-modal" onclick="if(event.target===this) closeSettings()">
     <div class="modal-card">
       <div class="modal-header">
-        <span>⚙️ Settings</span>
+        <span>⚙️ 1Hand DJ Settings</span>
         <button onclick="closeSettings()" style="min-height:36px; padding:6px 10px;">✕</button>
       </div>
 
@@ -1498,7 +1583,7 @@
 
   <header>
     <div class="logo">
-      <span>🎧 YT-MP3</span>
+      <span>🎧 1Hand DJ</span>
       <span class="drive-pill" id="header-drive-pill" onclick="openSettings()" title="Κατάσταση Google Drive">☁️ Offline</span>
     </div>
     <div class="header-controls">
@@ -1593,13 +1678,19 @@
     </div>
   </div>
 
-  <!-- SEARCH & ADD TRACKS -->
+  <!-- SEARCH & ADD TRACKS / RADIO STATIONS -->
   <div class="add-box">
-    <!-- In-App YouTube Search -->
+    <!-- Mode Tabs: YouTube vs Radio Stations -->
+    <div class="search-mode-tabs">
+      <button id="tab-search-yt" class="tab-active-yt" onclick="setSearchMode('youtube')">🎬 YouTube Τραγούδια</button>
+      <button id="tab-search-radio" onclick="setSearchMode('radio')">📻 Ραδιοφωνικοί Σταθμοί</button>
+    </div>
+
+    <!-- In-App Search Bar -->
     <div class="input-row">
       <input type="text" id="yt-search-input" placeholder="🔍 Αναζήτηση τραγουδιού στο YouTube..."
-        onkeydown="if(event.key==='Enter') searchYouTubeInApp()" />
-      <button class="btn-drive" onclick="searchYouTubeInApp()">🔍 Αναζήτηση</button>
+        onkeydown="if(event.key==='Enter') executeInAppSearch()" />
+      <button id="btn-inapp-search" class="btn-drive" onclick="executeInAppSearch()">🔍 Αναζήτηση</button>
     </div>
 
     <!-- Search & Similar Results Panel -->
@@ -1613,7 +1704,7 @@
 
     <!-- URL / Paste / MP3 -->
     <div class="input-row" style="margin-top:8px;">
-      <input type="text" id="yt-url-input" placeholder="YouTube video ή playlist link..."
+      <input type="text" id="yt-url-input" placeholder="YouTube link ή Radio Stream URL (mp3/aac)..."
         onkeydown="if(event.key==='Enter') addYouTubeFromInput()" />
       <button onclick="addYouTubeFromInput()">+ Προσθήκη</button>
     </div>
@@ -1685,8 +1776,12 @@
 
   <script>
     // --- APP VERSION ---
-    const APP_VERSION = 'v2.4.0 • Drag&Drop, Popular Similar, Radio & Sticky Bar';
+    const APP_VERSION = 'v2.5.0 • 1Hand DJ & Live Radio Stations';
     document.getElementById('app-version').textContent = APP_VERSION;
+
+    // --- DEDICATED RADIO PLAYLIST CONSTANT ---
+    const RADIO_PLAYLIST_ID = 'pl_radio_stations_system';
+    const RADIO_PLAYLIST_NAME = '📻 Ραδιοφωνικοί Σταθμοί';
 
     function hardReload() {
       const url = new URL(window.location.href);
@@ -1717,9 +1812,38 @@
       return 'pl_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
     }
 
+    function ensureDedicatedRadioPlaylist(mapObj) {
+      if (!mapObj[RADIO_PLAYLIST_ID]) {
+        // Migrate if an older playlist with exact name exists
+        const existingByName = Object.values(mapObj).find(p => p.name === RADIO_PLAYLIST_NAME);
+        if (existingByName && existingByName.id !== RADIO_PLAYLIST_ID) {
+          mapObj[RADIO_PLAYLIST_ID] = {
+            id: RADIO_PLAYLIST_ID,
+            name: RADIO_PLAYLIST_NAME,
+            isSystemRadio: true,
+            updatedAt: existingByName.updatedAt || new Date().toISOString(),
+            items: existingByName.items || []
+          };
+          delete mapObj[existingByName.id];
+        } else {
+          mapObj[RADIO_PLAYLIST_ID] = {
+            id: RADIO_PLAYLIST_ID,
+            name: RADIO_PLAYLIST_NAME,
+            isSystemRadio: true,
+            updatedAt: new Date(0).toISOString(),
+            items: []
+          };
+        }
+      } else {
+        mapObj[RADIO_PLAYLIST_ID].name = RADIO_PLAYLIST_NAME;
+        mapObj[RADIO_PLAYLIST_ID].isSystemRadio = true;
+      }
+      return mapObj;
+    }
+
     function normalizePlaylistsMap(rawObj) {
       const result = {};
-      if (!rawObj || typeof rawObj !== 'object') return result;
+      if (!rawObj || typeof rawObj !== 'object') return ensureDedicatedRadioPlaylist(result);
 
       Object.keys(rawObj).forEach(key => {
         const entry = rawObj[key];
@@ -1736,12 +1860,13 @@
           result[id] = {
             id,
             name: entry.name || 'Playlist',
+            isSystemRadio: Boolean(entry.isSystemRadio || id === RADIO_PLAYLIST_ID),
             updatedAt: entry.updatedAt || new Date().toISOString(),
             items: entry.items
           };
         }
       });
-      return result;
+      return ensureDedicatedRadioPlaylist(result);
     }
 
     // --- YOUTUBE API KEY (STORED IN SETTINGS / LOCALSTORAGE, NEVER HARDCODED) ---
@@ -1947,7 +2072,7 @@
           }
         }
       });
-      return merged;
+      return ensureDedicatedRadioPlaylist(merged);
     }
 
     function mergeHistoryLists(localHist, cloudHist) {
@@ -2057,7 +2182,7 @@
         }
 
         const payload = JSON.stringify({
-          app: 'YT-MP3 Mobile DJ',
+          app: '1Hand DJ',
           version: APP_VERSION,
           updatedAt: new Date().toISOString(),
           playlists: savedPlaylists,
@@ -2198,9 +2323,106 @@
     let ytHistory = JSON.parse(localStorage.getItem('dj_yt_history')) || [];
     let viewingHistory = false;
     let listFilterQuery = '';
+    let currentSearchMode = 'youtube'; // 'youtube' | 'radio'
 
     // Session played URIs (to prevent Radio / Auto-Fill loops)
     const sessionPlayedUris = new Set();
+
+    // --- SEARCH MODE TABS (YOUTUBE VS RADIO STATIONS) ---
+    function setSearchMode(mode) {
+      currentSearchMode = mode;
+      const tabYt = document.getElementById('tab-search-yt');
+      const tabRadio = document.getElementById('tab-search-radio');
+      const inp = document.getElementById('yt-search-input');
+      const btn = document.getElementById('btn-inapp-search');
+
+      if (mode === 'radio') {
+        tabYt.className = '';
+        tabRadio.className = 'tab-active-radio';
+        inp.placeholder = '📻 Αναζήτηση σταθμού (π.χ. Greece, Athens, Rock, Ελληνικά)...';
+        btn.className = 'btn-radio-search';
+        btn.textContent = '📻 Σταθμοί';
+      } else {
+        tabYt.className = 'tab-active-yt';
+        tabRadio.className = '';
+        inp.placeholder = '🔍 Αναζήτηση τραγουδιού στο YouTube...';
+        btn.className = 'btn-drive';
+        btn.textContent = '🔍 Αναζήτηση';
+      }
+      closeSearchResults();
+    }
+
+    function executeInAppSearch() {
+      if (currentSearchMode === 'radio') {
+        searchRadioStationsInApp();
+      } else {
+        searchYouTubeInApp();
+      }
+    }
+
+    // --- RADIO BROWSER API IN-APP SEARCH ---
+    async function searchRadioStationsInApp() {
+      const qInput = document.getElementById('yt-search-input');
+      const query = qInput.value.trim();
+
+      const panel = document.getElementById('yt-search-results');
+      const listEl = document.getElementById('search-res-list');
+      const labelEl = document.getElementById('search-res-label');
+
+      panel.style.display = 'block';
+      labelEl.textContent = '⏳ ΑΝΑΖΗΤΗΣΗ ΡΑΔΙΟΦΩΝΙΚΩΝ ΣΤΑΘΜΩΝ...';
+      listEl.innerHTML = '';
+
+      try {
+        // Use Radio Browser open API (by name, or top Greek stations if empty/Greece)
+        let apiUrl = '';
+        if (!query || /^(greece|ελλαδα|ελλάδα|greek|ελληνικα|ελληνικά)$/i.test(query)) {
+          apiUrl = `https://de1.api.radio-browser.info/json/stations/bycountrycodeexact/GR?limit=20&order=clickcount&reverse=true&hidebroken=true`;
+        } else {
+          apiUrl = `https://de1.api.radio-browser.info/json/stations/search?name=${encodeURIComponent(query)}&limit=18&order=clickcount&reverse=true&hidebroken=true`;
+        }
+
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error('Σφάλμα σύνδεσης με κατάλογο σταθμών');
+        let stations = await res.json();
+
+        // Fallback to tag search if name returned nothing
+        if ((!stations || stations.length === 0) && query) {
+          const tagUrl = `https://de1.api.radio-browser.info/json/stations/bytag/${encodeURIComponent(query.toLowerCase())}?limit=18&order=clickcount&reverse=true&hidebroken=true`;
+          const tagRes = await fetch(tagUrl);
+          if (tagRes.ok) stations = await tagRes.json();
+        }
+
+        // Filter out HLS .m3u8 streams that don't play natively in Chrome/Android <audio> without hls.js
+        const validStations = (stations || []).filter(st => {
+          const u = (st.url_resolved || st.url || '').toLowerCase();
+          return u && !u.includes('.m3u8');
+        });
+
+        if (validStations.length === 0) {
+          labelEl.textContent = 'ΔΕΝ ΒΡΕΘΗΚΑΝ ΣΤΑΘΜΟΙ';
+          return;
+        }
+
+        lastSearchResults = validStations.slice(0, 14).map(st => ({
+          resultType: 'radio',
+          uri: st.url_resolved || st.url,
+          title: (st.name || 'Live Radio').trim(),
+          country: st.countrycode || st.country || '',
+          bitrate: st.bitrate ? `${st.bitrate} kbps` : 'LIVE',
+          codec: (st.codec || 'MP3').toUpperCase(),
+          favicon: st.favicon || '',
+          tags: st.tags ? st.tags.split(',').slice(0, 3).join(', ') : ''
+        }));
+
+        labelEl.textContent = `📻 ΣΤΑΘΜΟΙ (${lastSearchResults.length})`;
+        renderSearchResults();
+      } catch (err) {
+        console.error(err);
+        labelEl.textContent = 'ΣΦΑΛΜΑ ΑΝΑΖΗΤΗΣΗΣ ΣΤΑΘΜΩΝ';
+        listEl.innerHTML = `<div style="font-size:0.82em; color:#fca5a5; padding:6px;">❌ ${err.message}</div>`;
+      }
+    }
 
     // --- UNIVERSAL HISTORY LOGIC ---
     function recordToHistory(track) {
@@ -2247,7 +2469,7 @@
         activeBadge.textContent = '📜 Προβολή Ιστορικού (Όλες οι πηγές)';
       } else {
         btn.classList.remove('active');
-        resetBtn.style.display = 'inline-flex';
+        resetBtn.style.display = (activePlaylistId === RADIO_PLAYLIST_ID) ? 'none' : 'inline-flex';
         refreshPlaylistUI();
       }
       renderQueue();
@@ -2304,13 +2526,11 @@
         .trim();
     }
 
-    // Core Popular Similar Finder (ranks by viewCount descending)
     async function fetchPopularSimilarTracks(seedTitle, excludeUri = null, maxCandidates = 18) {
       if (!ensureYouTubeApiKey(true)) return [];
       const cleaned = cleanTrackTitleForQuery(seedTitle);
       if (!cleaned) return [];
 
-      // Extract artist / primary phrase for broader musical match
       const parts = cleaned.split(/\s[-–—]\s/);
       const searchQuery = parts.length > 1 ? `${parts[0].trim()} ${parts[1].trim()}` : cleaned;
 
@@ -2340,6 +2560,7 @@
         const viewCountNum = Number(stats.viewCount || 0);
 
         return {
+          resultType: 'youtube',
           uri: vid,
           title: snip.title || 'YouTube Video',
           channel: snip.channelTitle || '',
@@ -2352,7 +2573,6 @@
         };
       });
 
-      // Keep playable tracks first & sort strictly by popularity (viewCount descending)
       return enriched
         .filter(t => t.embeddable)
         .sort((a, b) => b.viewCountNum - a.viewCountNum);
@@ -2386,14 +2606,14 @@
 
     function suggestSimilarForDeck(id) {
       const d = decks[id];
-      if (!d.track) return;
+      if (!d.track || d.track.source === 'radio') return;
       suggestSimilarForTitle(d.track.title, d.track.source === 'youtube' ? d.track.uri : null);
     }
 
     function suggestSimilarForItem(index) {
       const srcList = viewingHistory ? ytHistory : queue;
       const item = srcList[index];
-      if (!item) return;
+      if (!item || item.source === 'radio') return;
       suggestSimilarForTitle(item.title, item.source === 'youtube' ? item.uri : null);
     }
 
@@ -2451,6 +2671,7 @@
           const viewCountNum = Number(stats.viewCount || 0);
 
           return {
+            resultType: 'youtube',
             uri: vid,
             title: snip.title || 'YouTube Video',
             channel: snip.channelTitle || '',
@@ -2480,32 +2701,57 @@
         const card = document.createElement('div');
         card.className = 'sr-card';
 
-        const qBadgeClass = res.quality === 'HD' ? 'sr-badge hd' : 'sr-badge';
-        const qLabel = res.quality === 'HD' ? '🎬 HD' : '📼 SD';
-        const embedBadge = res.embeddable
-          ? '<span class="sr-badge ok">✅ OK</span>'
-          : '<span class="sr-badge blocked">🔒 Κλειδωμένο</span>';
-
-        card.innerHTML = `
-          <div class="sr-top">
-            <img class="sr-thumb" src="${res.thumb}" alt="" loading="lazy" />
-            <div class="sr-meta">
-              <div class="sr-title">${res.title}</div>
-              <div class="sr-channel">${res.channel}</div>
-              <div class="sr-badges">
-                <span class="${qBadgeClass}">${qLabel}</span>
-                <span class="sr-badge">👁️ ${res.views}</span>
-                ${res.duration ? `<span class="sr-badge">⏱️ ${res.duration}</span>` : ''}
-                ${embedBadge}
+        if (res.resultType === 'radio') {
+          const iconHtml = res.favicon
+            ? `<img src="${res.favicon}" alt="" onerror="this.parentElement.textContent='📻'" />`
+            : '📻';
+          card.innerHTML = `
+            <div class="sr-top">
+              <div class="sr-radio-icon">${iconHtml}</div>
+              <div class="sr-meta">
+                <div class="sr-title">${res.title}</div>
+                <div class="sr-channel">${res.tags || 'Live Radio Stream'}</div>
+                <div class="sr-badges">
+                  <span class="sr-badge radio">🔴 LIVE</span>
+                  ${res.country ? `<span class="sr-badge">🌍 ${res.country}</span>` : ''}
+                  <span class="sr-badge">${res.codec} • ${res.bitrate}</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="sr-actions">
-            <button class="btn-deck-a" onclick="playSearchResultOnDeck(${idx}, 'A')">→ Deck A</button>
-            <button class="btn-deck-b" onclick="playSearchResultOnDeck(${idx}, 'B')">→ Deck B</button>
-            <button class="btn-save-active" onclick="openListPickerForSearchResult(${idx})">➕ Add to list</button>
-          </div>
-        `;
+            <div class="sr-actions">
+              <button class="btn-deck-a" onclick="playSearchResultOnDeck(${idx}, 'A')">→ Deck A</button>
+              <button class="btn-deck-b" onclick="playSearchResultOnDeck(${idx}, 'B')">→ Deck B</button>
+              <button class="btn-save-active" onclick="openListPickerForSearchResult(${idx})">➕ Add to list</button>
+            </div>
+          `;
+        } else {
+          const qBadgeClass = res.quality === 'HD' ? 'sr-badge hd' : 'sr-badge';
+          const qLabel = res.quality === 'HD' ? '🎬 HD' : '📼 SD';
+          const embedBadge = res.embeddable
+            ? '<span class="sr-badge ok">✅ OK</span>'
+            : '<span class="sr-badge blocked">🔒 Κλειδωμένο</span>';
+
+          card.innerHTML = `
+            <div class="sr-top">
+              <img class="sr-thumb" src="${res.thumb}" alt="" loading="lazy" />
+              <div class="sr-meta">
+                <div class="sr-title">${res.title}</div>
+                <div class="sr-channel">${res.channel}</div>
+                <div class="sr-badges">
+                  <span class="${qBadgeClass}">${qLabel}</span>
+                  <span class="sr-badge">👁️ ${res.views}</span>
+                  ${res.duration ? `<span class="sr-badge">⏱️ ${res.duration}</span>` : ''}
+                  ${embedBadge}
+                </div>
+              </div>
+            </div>
+            <div class="sr-actions">
+              <button class="btn-deck-a" onclick="playSearchResultOnDeck(${idx}, 'A')">→ Deck A</button>
+              <button class="btn-deck-b" onclick="playSearchResultOnDeck(${idx}, 'B')">→ Deck B</button>
+              <button class="btn-save-active" onclick="openListPickerForSearchResult(${idx})">➕ Add to list</button>
+            </div>
+          `;
+        }
         listEl.appendChild(card);
       });
     }
@@ -2515,6 +2761,17 @@
     }
 
     function buildTrackFromSearchResult(res) {
+      if (res.resultType === 'radio') {
+        return {
+          source: 'radio',
+          uri: res.uri,
+          title: res.title,
+          cueIn: 0,
+          cueOut: 0,
+          embedStatus: 'ok',
+          played: false
+        };
+      }
       return {
         source: 'youtube',
         uri: res.uri,
@@ -2535,41 +2792,53 @@
       showToast(shouldStart ? `▶️ Deck ${deckId}: ${track.title}` : `⏸️ Φορτώθηκε στο Deck ${deckId} (Έτοιμο)`);
     }
 
-    // --- TARGET PLAYLIST PICKER (ALWAYS ASKS WHERE TO ADD) ---
+    // --- TARGET PLAYLIST PICKER ---
     function openListPickerForSearchResult(idx) {
       const res = lastSearchResults[idx];
       if (!res) return;
-      openListPickerForTracks([buildTrackFromSearchResult(res)], `🎵 ${res.title}`);
+      const track = buildTrackFromSearchResult(res);
+      openListPickerForTracks([track], res.resultType === 'radio' ? `📻 ${res.title}` : `🎵 ${res.title}`);
     }
 
     function openListPickerForTracks(tracksArray, headerLabel) {
       if (!tracksArray || tracksArray.length === 0) return;
       pendingListPickerTracks = tracksArray;
 
+      const isRadioBundle = tracksArray.every(t => t.source === 'radio');
+
       document.getElementById('list-picker-track-title').textContent = headerLabel || `🎵 ${tracksArray.length} κομμάτια`;
       const optionsBox = document.getElementById('list-picker-options');
       optionsBox.innerHTML = '';
 
-      // 1. Saved Playlists first so user explicitly chooses which list gets them
+      // If adding radio stations, put the dedicated Radio Stations playlist right at the top!
+      if (isRadioBundle && savedPlaylists[RADIO_PLAYLIST_ID]) {
+        const radioPl = savedPlaylists[RADIO_PLAYLIST_ID];
+        const btnRadio = document.createElement('button');
+        btnRadio.className = 'list-picker-item btn-save-active';
+        btnRadio.innerHTML = `<span>${radioPl.name} (Προτεινόμενη)</span><span>(${radioPl.items.length})</span>`;
+        btnRadio.onclick = () => addPendingTracksToTargetList(RADIO_PLAYLIST_ID);
+        optionsBox.appendChild(btnRadio);
+      }
+
       Object.values(savedPlaylists).forEach(pl => {
+        if (isRadioBundle && pl.id === RADIO_PLAYLIST_ID) return;
         const isCurrent = pl.id === activePlaylistId;
         const btn = document.createElement('button');
-        btn.className = isCurrent ? 'list-picker-item btn-save-active' : 'list-picker-item';
-        btn.innerHTML = `<span>📁 ${pl.name}${isCurrent ? ' (Ανοιχτή)' : ''}</span><span>(${pl.items.length})</span>`;
+        btn.className = (!isRadioBundle && isCurrent) ? 'list-picker-item btn-save-active' : 'list-picker-item';
+        const prefix = pl.id === RADIO_PLAYLIST_ID ? '' : '📁 ';
+        btn.innerHTML = `<span>${prefix}${pl.name}${isCurrent ? ' (Ανοιχτή)' : ''}</span><span>(${pl.items.length})</span>`;
         btn.onclick = () => addPendingTracksToTargetList(pl.id);
         optionsBox.appendChild(btn);
       });
 
-      // 2. Draft / Unsaved Queue option
       if (!activePlaylistId) {
         const btnDraft = document.createElement('button');
-        btnDraft.className = 'list-picker-item btn-save-active';
+        btnDraft.className = (!isRadioBundle) ? 'list-picker-item btn-save-active' : 'list-picker-item';
         btnDraft.innerHTML = `<span>📝 Πρόχειρη Λίστα (Τρέχουσα ουρά)</span><span>(${queue.length})</span>`;
         btnDraft.onclick = () => addPendingTracksToTargetList('__DRAFT__');
         optionsBox.appendChild(btnDraft);
       }
 
-      // 3. Create New Playlist option
       const btnNew = document.createElement('button');
       btnNew.className = 'list-picker-item btn-drive';
       btnNew.innerHTML = `<span>➕ Δημιουργία Νέας Λίστας...</span><span>+</span>`;
@@ -2733,7 +3002,7 @@
       if (unlockInput.value.trim() === savedPin) {
         document.getElementById('pin-lock-screen').classList.remove('locked');
         unlockInput.value = '';
-        showToast('🔓 Καλώς ήρθες');
+        showToast('🔓 Καλώς ήρθες στο 1Hand DJ');
       } else {
         unlockInput.value = '';
         showToast('❌ Λάθος PIN');
@@ -2820,12 +3089,14 @@
       } else if (aPlaying) {
         bar.classList.add('deck-a-mode');
         badge.className = 'sticky-badge a';
-        badge.textContent = '▶ ΠΑΙΖΕΙ: DECK A (Ελεύθερο: B)';
+        const liveTag = decks.A.track.source === 'radio' ? ' 🔴 LIVE' : '';
+        badge.textContent = `▶ ΠΑΙΖΕΙ: DECK A${liveTag} (Ελεύθερο: B)`;
         nameEl.textContent = decks.A.track.title;
       } else if (bPlaying) {
         bar.classList.add('deck-b-mode');
         badge.className = 'sticky-badge b';
-        badge.textContent = '▶ ΠΑΙΖΕΙ: DECK B (Ελεύθερο: A)';
+        const liveTag = decks.B.track.source === 'radio' ? ' 🔴 LIVE' : '';
+        badge.textContent = `▶ ΠΑΙΖΕΙ: DECK B${liveTag} (Ελεύθερο: A)`;
         nameEl.textContent = decks.B.track.title;
       }
     }
@@ -2859,13 +3130,14 @@
     }
 
     function formatTime(sec) {
-      if (!sec || isNaN(sec)) return '00:00';
+      if (!sec || isNaN(sec) || !isFinite(sec)) return '00:00';
       const m = Math.floor(sec / 60);
       const s = Math.floor(sec % 60);
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
     function openYouTubeSearch(title) {
+      setSearchMode('youtube');
       document.getElementById('yt-search-input').value = title;
       searchYouTubeInApp();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2926,7 +3198,7 @@
 
     function setDeckCueIn(id) {
       const d = decks[id];
-      if (!d.track) { showToast('Φόρτωσε πρώτα ένα τραγούδι στο Deck'); return; }
+      if (!d.track || d.source === 'radio') { showToast('Φόρτωσε πρώτα ένα τραγούδι στο Deck'); return; }
       const sec = Math.floor(d.currentTime);
       d.track.cueIn = sec;
       d.appliedCueIn = true;
@@ -2937,7 +3209,7 @@
 
     function setDeckCueOut(id) {
       const d = decks[id];
-      if (!d.track) { showToast('Φόρτωσε πρώτα ένα τραγούδι στο Deck'); return; }
+      if (!d.track || d.source === 'radio') { showToast('Φόρτωσε πρώτα ένα τραγούδι στο Deck'); return; }
       const sec = Math.floor(d.currentTime);
       if (sec <= (d.track.cueIn || 0) + 2) {
         showToast('⚠️ Το Cue Out πρέπει να είναι μετά το Cue In');
@@ -2962,6 +3234,7 @@
     // --- SEEK BAR LOGIC ---
     function onSeekInput(id, val) {
       const d = decks[id];
+      if (d.source === 'radio') return;
       d.isSeeking = true;
       if (d.duration > 0) {
         const previewSec = (Number(val) / 1000) * d.duration;
@@ -2971,6 +3244,7 @@
 
     function onSeekCommit(id, val) {
       const d = decks[id];
+      if (d.source === 'radio') return;
       if (d.duration > 0) {
         const targetSec = (Number(val) / 1000) * d.duration;
         d.appliedCueIn = true;
@@ -3101,12 +3375,19 @@
     }
 
     function onDeckError(id, errCode) {
-      decks[id].readyToPlay = false;
+      const d = decks[id];
+      d.readyToPlay = false;
       updateDeckUI(id);
+
+      if (d.source === 'radio') {
+        showToast(`📻 Deck ${id}: Ο σταθμός δεν αποκρίνεται (δοκίμασε άλλον)`);
+        return;
+      }
+
       document.getElementById(`alt-${id.toLowerCase()}`).style.display = 'inline-flex';
-      if (decks[id].track) {
-        decks[id].track.embedStatus = 'blocked';
-        const inQ = queue.find(q => q.uri === decks[id].track.uri);
+      if (d.track) {
+        d.track.embedStatus = 'blocked';
+        const inQ = queue.find(q => q.uri === d.track.uri);
         if (inQ) {
           inQ.embedStatus = 'blocked';
           saveQueueAndSyncPlaylist();
@@ -3119,7 +3400,7 @@
       }
     }
 
-    // --- MP3 AUDIO EVENTS ---
+    // --- MP3 & LIVE RADIO AUDIO EVENTS ---
     ['A', 'B'].forEach(id => {
       const audio = decks[id].audioEl;
       audio.addEventListener('canplay', () => {
@@ -3133,7 +3414,7 @@
         const d = decks[id];
         d.playing = true;
         d.readyToPlay = false;
-        if (!d.appliedCueIn && d.track && d.track.cueIn > 0) {
+        if (d.source !== 'radio' && !d.appliedCueIn && d.track && d.track.cueIn > 0) {
           d.appliedCueIn = true;
           audio.currentTime = d.track.cueIn;
         }
@@ -3145,7 +3426,12 @@
         decks[id].playing = false;
         decks[id].readyToPlay = false;
         updateDeckUI(id);
-        if (autoDJ) handleTrackEnded(id);
+        if (autoDJ && decks[id].source !== 'radio') handleTrackEnded(id);
+      });
+      audio.addEventListener('error', () => {
+        if (decks[id].source === 'radio' || decks[id].source === 'mp3' || decks[id].source === 'drive_mp3') {
+          onDeckError(id, 0);
+        }
       });
     });
 
@@ -3161,9 +3447,16 @@
       d.readyToPlay = false;
       document.getElementById(`seek-${id.toLowerCase()}`).value = 0;
 
+      const isLiveRadio = track.source === 'radio';
+      const cardEl = document.getElementById(`card-${id.toLowerCase()}`);
+      cardEl.classList.toggle('live-radio-mode', isLiveRadio);
+
       document.getElementById(`title-${id.toLowerCase()}`).textContent = track.title;
-      document.getElementById(`sim-${id.toLowerCase()}`).style.display = 'inline-flex';
-      document.getElementById(`alt-${id.toLowerCase()}`).style.display = (track.embedStatus === 'blocked') ? 'inline-flex' : 'none';
+      document.getElementById(`sim-${id.toLowerCase()}`).style.display = isLiveRadio ? 'none' : 'inline-flex';
+      document.getElementById(`alt-${id.toLowerCase()}`).style.display = (!isLiveRadio && track.embedStatus === 'blocked') ? 'inline-flex' : 'none';
+      document.getElementById(`time-${id.toLowerCase()}`).innerHTML = isLiveRadio
+        ? '<span class="live-pill">🔴 LIVE</span> 00:00'
+        : '00:00 / 00:00';
       updateDeckCueButtons(id);
 
       recordToHistory(track);
@@ -3182,6 +3475,15 @@
           }
         } else {
           d.pendingTrack = { track, autoPlay };
+        }
+      } else if (track.source === 'radio') {
+        overlay.style.display = 'flex';
+        overlay.innerHTML = `📻 LIVE RADIO<br/><span style="font-size:0.8em; font-weight:600; color:#fbcfe8; margin-top:4px; display:block;">${track.title}</span>`;
+        d.audioEl.src = track.uri;
+        if (autoPlay) {
+          d.audioEl.play().catch(() => showToast('Πάτα Play για εκκίνηση ραδιοφώνου'));
+        } else {
+          d.readyToPlay = true;
         }
       } else if (track.source === 'mp3') {
         overlay.style.display = 'flex';
@@ -3231,7 +3533,13 @@
         try { d.ytPlayer.stopVideo(); } catch(e) {}
       }
       d.audioEl.pause();
-      d.audioEl.currentTime = 0;
+      if (d.source === 'radio') {
+        // Release live stream connection cleanly
+        d.audioEl.removeAttribute('src');
+        d.audioEl.load();
+      } else {
+        d.audioEl.currentTime = 0;
+      }
       d.playing = false;
       d.readyToPlay = false;
       d.appliedCueIn = false;
@@ -3242,8 +3550,11 @@
     function togglePlay(id) {
       const d = decks[id];
       if (!d.track) {
-        if (queue.length > 0) loadNextUnplayedToDeck(id, getDeckDefaultAutoStart(id));
-        else showToast('Η λίστα είναι άδεια');
+        if (queue.length > 0 && activePlaylistId !== RADIO_PLAYLIST_ID) {
+          loadNextUnplayedToDeck(id, getDeckDefaultAutoStart(id));
+        } else {
+          showToast('Φόρτωσε πρώτα ένα κομμάτι ή σταθμό');
+        }
         return;
       }
 
@@ -3251,6 +3562,14 @@
       if (d.source === 'youtube' && d.ytReady) {
         if (d.playing) d.ytPlayer.pauseVideo();
         else d.ytPlayer.playVideo();
+      } else if (d.source === 'radio') {
+        if (d.playing) {
+          d.audioEl.pause();
+        } else {
+          // Reconnect live edge cleanly on resume
+          d.audioEl.src = d.track.uri;
+          d.audioEl.play().catch(() => showToast('❌ Αδυναμία σύνδεσης στον σταθμό'));
+        }
       } else if (d.source === 'mp3' || d.source === 'drive_mp3') {
         if (d.playing) d.audioEl.pause();
         else d.audioEl.play();
@@ -3262,7 +3581,7 @@
       const btn = document.getElementById(`play-${id.toLowerCase()}`);
       const d = decks[id];
       if (d.playing) {
-        btn.textContent = '⏸ Pause';
+        btn.textContent = d.source === 'radio' ? '⏹ Stop' : '⏸ Pause';
         btn.classList.add('playing');
         btn.classList.remove('ready-blink');
       } else {
@@ -3303,10 +3622,12 @@
     // --- AUTO-DJ, RADIO MODE & AUTO-FILL ENGINE ---
     function getSeedTrackForSimilar(preferredDeckId) {
       const otherId = preferredDeckId === 'A' ? 'B' : 'A';
-      if (decks[otherId].track) return decks[otherId].track;
-      if (decks[preferredDeckId].track) return decks[preferredDeckId].track;
-      if (queue.length > 0) return queue[queue.length - 1];
-      if (ytHistory.length > 0) return ytHistory[0];
+      if (decks[otherId].track && decks[otherId].track.source !== 'radio') return decks[otherId].track;
+      if (decks[preferredDeckId].track && decks[preferredDeckId].track.source !== 'radio') return decks[preferredDeckId].track;
+      const nonRadioInQ = [...queue].reverse().find(q => q.source !== 'radio');
+      if (nonRadioInQ) return nonRadioInQ;
+      const nonRadioInH = ytHistory.find(h => h.source !== 'radio');
+      if (nonRadioInH) return nonRadioInH;
       return null;
     }
 
@@ -3317,7 +3638,6 @@
         const fresh = candidates.filter(c => !sessionPlayedUris.has(c.uri));
         const pool = fresh.length > 0 ? fresh : candidates;
         if (pool.length === 0) return null;
-        // Pick from top 4 most popular similar tracks for variety + high popularity
         const topSlice = pool.slice(0, Math.min(4, pool.length));
         const chosen = topSlice[Math.floor(Math.random() * topSlice.length)];
         return buildTrackFromSearchResult(chosen);
@@ -3360,7 +3680,7 @@
         return false;
       }
 
-      // 2. Normal Queue Mode -> Pull next unplayed from queue
+      // 2. Normal Queue Mode -> Pull next unplayed non-radio track from queue
       if (loadNextUnplayedToDeck(targetDeckId, autoPlay)) {
         return true;
       }
@@ -3402,6 +3722,11 @@
     }
 
     async function toggleAutoDJ() {
+      if (!autoDJ && activePlaylistId === RADIO_PLAYLIST_ID && !radioMode) {
+        showToast('📻 Η λίστα «Ραδιοφωνικοί Σταθμοί» παίζει live — επίλεξε μουσική λίστα για Auto-DJ');
+        return;
+      }
+
       autoDJ = !autoDJ;
       const btn = document.getElementById('btn-autodj');
       const radioBtn = document.getElementById('btn-radio-mode');
@@ -3472,9 +3797,21 @@
           isTransitioning = false;
           updateStickyPlayingBar();
 
-          const loadedNext = await prepareNextAutoDJTrackForDeck(fromId, false);
-          if (!loadedNext) {
+          if (autoDJ) {
+            const loadedNext = await prepareNextAutoDJTrackForDeck(fromId, false);
+            if (!loadedNext) {
+              decks[fromId].track = null;
+              decks[fromId].source = null;
+              document.getElementById(`card-${fromId.toLowerCase()}`).classList.remove('live-radio-mode');
+              document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
+              document.getElementById(`sim-${fromId.toLowerCase()}`).style.display = 'none';
+              document.getElementById(`alt-${fromId.toLowerCase()}`).style.display = 'none';
+              updateDeckCueButtons(fromId);
+            }
+          } else {
             decks[fromId].track = null;
+            decks[fromId].source = null;
+            document.getElementById(`card-${fromId.toLowerCase()}`).classList.remove('live-radio-mode');
             document.getElementById(`title-${fromId.toLowerCase()}`).textContent = 'Κενό Deck';
             document.getElementById(`sim-${fromId.toLowerCase()}`).style.display = 'none';
             document.getElementById(`alt-${fromId.toLowerCase()}`).style.display = 'none';
@@ -3484,7 +3821,7 @@
       }, durationMs / steps);
     }
 
-    // Monitoring Loop (with Cue Out awareness)
+    // Monitoring Loop (with Cue Out & Live Radio awareness)
     setInterval(() => {
       ['A', 'B'].forEach(id => {
         const d = decks[id];
@@ -3493,13 +3830,18 @@
         if (d.source === 'youtube' && d.ytReady && d.ytPlayer.getCurrentTime) {
           cur = d.ytPlayer.getCurrentTime() || 0;
           dur = d.ytPlayer.getDuration() || 0;
-        } else if (d.source === 'mp3' || d.source === 'drive_mp3') {
+        } else if (d.source === 'mp3' || d.source === 'drive_mp3' || d.source === 'radio') {
           cur = d.audioEl.currentTime || 0;
           dur = d.audioEl.duration || 0;
         }
 
         d.currentTime = cur;
         d.duration = dur;
+
+        if (d.source === 'radio') {
+          document.getElementById(`time-${id.toLowerCase()}`).innerHTML = `<span class="live-pill">🔴 LIVE</span> ${formatTime(cur)}`;
+          return;
+        }
 
         if (!d.isSeeking) {
           document.getElementById(`time-${id.toLowerCase()}`).textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
@@ -3518,7 +3860,7 @@
       });
     }, 350);
 
-    // --- QUEUE, OFFICIAL YOUTUBE PLAYLIST API & BULK IMPORT ---
+    // --- QUEUE, OFFICIAL YOUTUBE PLAYLIST API & DIRECT STREAM URL ---
     function extractYouTubeID(url) {
       const regExp = /(?:(?:music\.)?youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
       const match = url.match(regExp);
@@ -3528,6 +3870,12 @@
     function extractPlaylistID(url) {
       const match = url.match(/[?&]list=([a-zA-Z0-9_-]+)/);
       return match ? match[1] : null;
+    }
+
+    function isDirectRadioStreamUrl(url) {
+      if (!/^https?:\/\//i.test(url)) return false;
+      if (/youtube\.com|youtu\.be/i.test(url)) return false;
+      return true;
     }
 
     async function fetchTrackTitle(videoId) {
@@ -3552,7 +3900,6 @@
       };
     }
 
-    // Direct YouTube Data API v3 Playlist Import (always asks which list to add to)
     async function importYouTubePlaylistById(listId) {
       if (!ensureYouTubeApiKey()) return false;
       showToast('⏳ Ανάγνωση YouTube Playlist μέσω API...');
@@ -3627,15 +3974,39 @@
         }
       }
 
-      if (!videoId) {
-        showToast('❌ Μη έγκυρο YouTube link');
+      if (videoId) {
+        if (directUrl === null) input.value = '';
+        showToast('Έλεγχος κομματιού...');
+        const item = await buildSingleVideoTrack(videoId);
+        openListPickerForTracks([item], `🎵 ${item.title}`);
         return;
       }
 
-      if (directUrl === null) input.value = '';
-      showToast('Έλεγχος κομματιού...');
-      const item = await buildSingleVideoTrack(videoId);
-      openListPickerForTracks([item], `🎵 ${item.title}`);
+      // Check if it is a direct Radio Stream URL (e.g., https://.../stream.mp3)
+      if (isDirectRadioStreamUrl(url)) {
+        let defaultName = 'Live Radio Station';
+        try {
+          const parsedUrl = new URL(url);
+          defaultName = parsedUrl.hostname.replace(/^www\./, '');
+        } catch (e) {}
+        const stationName = prompt('Όνομα Ραδιοφωνικού Σταθμού:', defaultName);
+        if (!stationName || !stationName.trim()) return;
+        if (directUrl === null) input.value = '';
+
+        const radioItem = {
+          source: 'radio',
+          uri: url,
+          title: stationName.trim(),
+          cueIn: 0,
+          cueOut: 0,
+          embedStatus: 'ok',
+          played: false
+        };
+        openListPickerForTracks([radioItem], `📻 ${radioItem.title}`);
+        return;
+      }
+
+      showToast('❌ Μη έγκυρο YouTube link ή Radio Stream URL');
     }
 
     async function smartPaste() {
@@ -3699,7 +4070,8 @@
     }
 
     function loadNextUnplayedToDeck(id, autoPlay) {
-      const nextIdx = queue.findIndex(item => !item.played && item.embedStatus !== 'blocked');
+      // Skip live radio stations during sequential Auto-DJ queue playback
+      const nextIdx = queue.findIndex(item => !item.played && item.embedStatus !== 'blocked' && item.source !== 'radio');
       if (nextIdx === -1) return false;
       queue[nextIdx].played = true;
       saveQueueAndSyncPlaylist();
@@ -3717,9 +4089,11 @@
         if (!shouldStart) showToast(`⏸️ Φορτώθηκε στο Deck ${id} (Πάτα Play)`);
         return;
       }
-      queue[index].played = true;
-      saveQueueAndSyncPlaylist();
-      renderQueue();
+      if (queue[index].source !== 'radio') {
+        queue[index].played = true;
+        saveQueueAndSyncPlaylist();
+        renderQueue();
+      }
       loadTrackToDeck(id, queue[index], shouldStart);
       if (!shouldStart) showToast(`⏸️ Φορτώθηκε στο Deck ${id} (Πάτα Play)`);
     }
@@ -3791,13 +4165,13 @@
       scheduleDrivePush();
     }
 
-    // --- DRAG & DROP (INTERNAL REORDER FOR DESKTOP & TOUCH + EXTERNAL FILE/LINK DROP) ---
+    // --- DRAG & DROP ---
     let dragSourceIndex = null;
 
     function initExternalListDropZone() {
       const listEl = document.getElementById('queue-list');
       listEl.addEventListener('dragover', (e) => {
-        if (dragSourceIndex !== null) return; // Internal reorder handled per-item
+        if (dragSourceIndex !== null) return;
         e.preventDefault();
         listEl.classList.add('external-drop-hover');
       });
@@ -3834,7 +4208,6 @@
       const handle = li.querySelector('.drag-handle');
       if (!handle) return;
 
-      // Desktop HTML5 Drag & Drop
       li.setAttribute('draggable', 'true');
       li.addEventListener('dragstart', (e) => {
         dragSourceIndex = idx;
@@ -3866,7 +4239,6 @@
         document.querySelectorAll('.queue-item').forEach(el => el.classList.remove('dragging', 'drag-over-target'));
       });
 
-      // Mobile / Touch Drag & Drop on handle
       let touchDragActive = false;
       let currentTargetIdx = idx;
 
@@ -3908,6 +4280,7 @@
       const list = document.getElementById('queue-list');
       const activeData = viewingHistory ? ytHistory : queue;
       const titleEl = document.getElementById('list-section-title');
+      const isRadioPlaylist = !viewingHistory && activePlaylistId === RADIO_PLAYLIST_ID;
 
       const filteredEntries = activeData
         .map((item, idx) => ({ item, idx }))
@@ -3917,14 +4290,18 @@
         ? `${filteredEntries.length} / ${activeData.length}`
         : `${activeData.length}`;
 
-      titleEl.innerHTML = viewingHistory
-        ? `📜 HISTORY (<span id="q-count">${countDisplay}</span>)`
-        : `ΚΟΜΜΑΤΙΑ (<span id="q-count">${countDisplay}</span>)`;
+      if (viewingHistory) {
+        titleEl.innerHTML = `📜 HISTORY (<span id="q-count">${countDisplay}</span>)`;
+      } else if (isRadioPlaylist) {
+        titleEl.innerHTML = `📻 ΣΤΑΘΜΟΙ (<span id="q-count">${countDisplay}</span>)`;
+      } else {
+        titleEl.innerHTML = `ΚΟΜΜΑΤΙΑ (<span id="q-count">${countDisplay}</span>)`;
+      }
 
       list.innerHTML = '';
 
       if (filteredEntries.length === 0 && listFilterQuery) {
-        list.innerHTML = `<li style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.9em;">Δεν βρέθηκαν κομμάτια για "${listFilterQuery}"</li>`;
+        list.innerHTML = `<li style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.9em;">Δεν βρέθηκαν αποτελέσματα για "${listFilterQuery}"</li>`;
         return;
       }
 
@@ -3934,10 +4311,12 @@
         const li = document.createElement('li');
         li.setAttribute('data-idx', idx);
         const isBlocked = item.embedStatus === 'blocked';
+        const isRadio = item.source === 'radio';
         li.className = 'queue-item'
           + (isBlocked ? ' blocked-item' : '')
-          + (!viewingHistory && item.played ? ' played-item' : '')
-          + (viewingHistory ? ' history-item' : '');
+          + (!viewingHistory && !isRadio && item.played ? ' played-item' : '')
+          + (viewingHistory ? ' history-item' : '')
+          + (isRadio ? ' radio-station-item' : '');
 
         let statusBadge = '';
         if (item.source === 'youtube') {
@@ -3945,18 +4324,22 @@
           else if (item.embedStatus === 'blocked') statusBadge = '<span class="q-status-err">🔒</span>';
           else statusBadge = '<span class="q-status-chk">⏳</span>';
         }
-        const cueBadge = (item.cueIn > 0 || item.cueOut > 0)
+        const cueBadge = (!isRadio && (item.cueIn > 0 || item.cueOut > 0))
           ? `<span class="q-cue-tag">✂️ ${item.cueIn > 0 ? formatTime(item.cueIn) : '00:00'}→${item.cueOut > 0 ? formatTime(item.cueOut) : 'End'}</span>`
           : '';
-        const playedBadge = (!viewingHistory && item.played) ? '<span class="q-status-played">✓</span>' : '';
+        const playedBadge = (!viewingHistory && !isRadio && item.played) ? '<span class="q-status-played">✓</span>' : '';
         const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
         let sourceTagHtml = `<span class="q-tag mp3-tag">${idx + 1}. MP3</span>`;
         if (item.source === 'youtube') sourceTagHtml = `<span class="q-tag">${idx + 1}. YT</span>`;
         else if (item.source === 'drive_mp3') sourceTagHtml = `<span class="q-tag drive-tag">${idx + 1}. ☁️</span>`;
+        else if (isRadio) sourceTagHtml = `<span class="q-tag radio-tag">${idx + 1}. 📻 LIVE</span>`;
 
         const dragHandleHtml = canDrag ? `<div class="drag-handle" title="Σύρε για αλλαγή σειράς">⋮⋮</div>` : '';
         const historyAddBtn = viewingHistory ? `<button onclick="addHistoryItemToList(${idx})" title="Προσθήκη σε λίστα">+</button>` : '';
+        const similarBtnHtml = !isRadio
+          ? `<button class="btn-sim-item" onclick="suggestSimilarForItem(${idx})" title="Παρόμοια κομμάτια">✨</button>`
+          : '';
 
         li.innerHTML = `
           ${dragHandleHtml}
@@ -3971,7 +4354,7 @@
           </div>
           <div class="q-actions">
             ${historyAddBtn}
-            <button class="btn-sim-item" onclick="suggestSimilarForItem(${idx})" title="Παρόμοια κομμάτια">✨</button>
+            ${similarBtnHtml}
             ${isBlocked
               ? `<button class="btn-find" onclick="openYouTubeSearch('${safeTitle}')">🔎</button>`
               : `<button onclick="loadSpecificToDeck(${idx}, 'A')">→A</button>
@@ -3985,29 +4368,44 @@
       });
     }
 
-    // --- PLAYLIST STORAGE (ID-BASED) ---
+    // --- PLAYLIST STORAGE (ID-BASED + DEDICATED RADIO PLAYLIST) ---
     function refreshPlaylistUI() {
       const sel = document.getElementById('saved-playlists');
       const label = document.getElementById('active-pl-label');
       const btnUpdate = document.getElementById('btn-update-pl');
       const btnRename = document.getElementById('btn-rename-pl');
       const btnDel = document.getElementById('btn-del-pl');
+      const btnReset = document.getElementById('btn-reset-played');
 
       sel.innerHTML = '<option value="">-- Πρόχειρη Λίστα (Χωρίς όνομα) --</option>';
-      Object.values(savedPlaylists).forEach(pl => {
+
+      // Put Dedicated Radio Stations playlist first for quick 1-hand access
+      const orderedPlaylists = Object.values(savedPlaylists).sort((a, b) => {
+        if (a.id === RADIO_PLAYLIST_ID) return -1;
+        if (b.id === RADIO_PLAYLIST_ID) return 1;
+        return 0;
+      });
+
+      orderedPlaylists.forEach(pl => {
         const opt = document.createElement('option');
         opt.value = pl.id;
-        opt.textContent = `📁 ${pl.name} (${pl.items.length} κομμάτια)`;
+        const isSysRadio = pl.id === RADIO_PLAYLIST_ID;
+        opt.textContent = isSysRadio
+          ? `${pl.name} (${pl.items.length} σταθμοί)`
+          : `📁 ${pl.name} (${pl.items.length} κομμάτια)`;
         if (pl.id === activePlaylistId) opt.selected = true;
         sel.appendChild(opt);
       });
 
       const activePl = activePlaylistId ? savedPlaylists[activePlaylistId] : null;
+      const isSystemRadio = activePlaylistId === RADIO_PLAYLIST_ID;
+
       if (activePl) {
         if (!viewingHistory) label.textContent = `Ενεργή: ${activePl.name} (Auto-Save)`;
         btnUpdate.style.display = 'inline-flex';
-        btnRename.style.display = 'inline-flex';
-        btnDel.style.display = 'inline-flex';
+        btnRename.style.display = isSystemRadio ? 'none' : 'inline-flex';
+        btnDel.style.display = isSystemRadio ? 'none' : 'inline-flex';
+        if (!viewingHistory) btnReset.style.display = isSystemRadio ? 'none' : 'inline-flex';
       } else {
         activePlaylistId = '';
         localStorage.setItem('dj_active_pl_id', '');
@@ -4015,6 +4413,7 @@
         btnUpdate.style.display = 'none';
         btnRename.style.display = 'none';
         btnDel.style.display = 'none';
+        if (!viewingHistory) btnReset.style.display = 'inline-flex';
       }
     }
 
@@ -4041,6 +4440,7 @@
     }
 
     function renameActivePlaylist() {
+      if (activePlaylistId === RADIO_PLAYLIST_ID) return;
       const activePl = activePlaylistId ? savedPlaylists[activePlaylistId] : null;
       if (!activePl) return;
       const newName = prompt('Νέο όνομα Playlist:', activePl.name);
@@ -4085,6 +4485,10 @@
     }
 
     function deleteSavedPlaylist() {
+      if (activePlaylistId === RADIO_PLAYLIST_ID) {
+        showToast('📻 Η λίστα «Ραδιοφωνικοί Σταθμοί» είναι μόνιμη');
+        return;
+      }
       const activePl = activePlaylistId ? savedPlaylists[activePlaylistId] : null;
       if (!activePl) return;
       if (!confirm(`Να διαγραφεί οριστικά η playlist "${activePl.name}";`)) return;
@@ -4169,7 +4573,7 @@
       }
 
       const dataToExport = {
-        app: 'YT-MP3 Mobile DJ',
+        app: '1Hand DJ',
         version: APP_VERSION,
         exportedAt: new Date().toISOString()
       };
@@ -4191,7 +4595,7 @@
       const suffix = (incPlaylists && incSettings) ? 'full' : (incPlaylists ? 'playlists' : 'settings');
       const a = document.createElement('a');
       a.href = url;
-      a.download = `yt-mp3-dj-${suffix}-${dateStr}.json`;
+      a.download = `1hand-dj-${suffix}-${dateStr}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -4262,6 +4666,15 @@
         let addedCount = 0;
 
         Object.values(importedMap).forEach(impPl => {
+          if (impPl.id === RADIO_PLAYLIST_ID) {
+            // Merge radio stations cleanly without duplicating URIs
+            const existingUris = new Set(savedPlaylists[RADIO_PLAYLIST_ID].items.map(i => i.uri));
+            const freshStations = (impPl.items || []).filter(i => !existingUris.has(i.uri));
+            savedPlaylists[RADIO_PLAYLIST_ID].items.push(...freshStations);
+            savedPlaylists[RADIO_PLAYLIST_ID].updatedAt = new Date().toISOString();
+            if (freshStations.length > 0) addedCount++;
+            return;
+          }
           if (savedPlaylists[impPl.id]) {
             const overwrite = confirm(`Η playlist "${impPl.name}" (ίδιο ID) υπάρχει ήδη.\nOK = Ενημέρωση της ίδιας\nΆκυρο = Αποθήκευση ως νέο αντίγραφο`);
             if (overwrite) {
